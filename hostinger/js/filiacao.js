@@ -424,34 +424,35 @@ function mapearMensagemErro(error) {
   const mensagemOriginal = error?.message || ''
   const codigo = error?.code || ''
 
-  if (mensagemOriginal === 'CPF inválido. Verifique os números.') {
+  // Mensagens de validação do formulário (geradas internamente — seguras para exibir)
+  const mensagensSegurasExatas = [
+    'Preencha o nome completo para continuar.',
+    'Preencha o CPF para continuar.',
+    'Informe sua data de nascimento.',
+    'Preencha o WhatsApp para continuar.',
+    'O e-mail é obrigatório.',
+    'Digite um e-mail válido.',
+    'O nome da empresa é obrigatório.',
+    'O cargo é obrigatório.',
+    'Envie o contracheque para continuar.',
+    'Envie um contracheque em PDF, JPG ou PNG.',
+    'A assinatura digital é obrigatória.',
+    'Assine o formulário para continuar.',
+    'É necessário autorizar o desconto em contracheque para continuar.',
+    'Aceite a política de privacidade para continuar.',
+    'Confirme a declaração para continuar.',
+    'CPF inválido. Verifique os números.',
+    'Por favor, confirme que você não é um robô.',
+  ]
+  if (mensagensSegurasExatas.includes(mensagemOriginal)) {
     return mensagemOriginal
   }
 
-  if (mensagemOriginal === 'Envie o contracheque para continuar.') {
-    return mensagemOriginal
-  }
+  // Mensagens com correspondência parcial (seguras por conteúdo controlado)
+  if (mensagemOriginal.includes('Compacte o arquivo')) return mensagemOriginal
+  if (mensagemOriginal.startsWith('Você atingiu o limite de')) return mensagemOriginal
 
-  if (mensagemOriginal === 'A assinatura digital é obrigatória.') {
-    return mensagemOriginal
-  }
-
-  if (mensagemOriginal === 'É necessário autorizar o desconto em contracheque para continuar.') {
-    return mensagemOriginal
-  }
-
-  if (mensagemOriginal === 'Aceite a política de privacidade para continuar.') {
-    return mensagemOriginal
-  }
-
-  if (mensagemOriginal === 'Por favor, confirme que você não é um robô.') {
-    return mensagemOriginal
-  }
-
-  if (mensagemOriginal.includes('Compacte o arquivo')) {
-    return mensagemOriginal
-  }
-
+  // Erros do banco com código conhecido (mapear para mensagem amigável)
   if (codigo === '23505') {
     if (mensagemOriginal.includes('socios_cpf_key')) {
       return 'Este CPF já possui cadastro.'
@@ -462,7 +463,10 @@ function mapearMensagemErro(error) {
     return 'Erro ao processar cadastro. Tente novamente.'
   }
 
-  return mensagemOriginal || 'Erro ao enviar. Tente novamente.'
+  // Qualquer mensagem não reconhecida (PostgREST, Storage, rede, runtime JS)
+  // não deve chegar ao usuário em forma técnica.
+  console.error('[filiacao] Erro não mapeado:', error)
+  return 'Não foi possível concluir o envio. Tente novamente em alguns instantes.'
 }
 
 function exibirErro(mensagem) {
