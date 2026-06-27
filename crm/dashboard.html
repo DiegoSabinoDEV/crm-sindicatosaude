@@ -101,6 +101,7 @@
     import { supabase } from '/js/supabase.js'
     import { protegerRota, fazerLogout, exibirAlerta, formatarMensagemErro } from '/js/admin/auth.js'
     import { carregarSocios, calcularEstatisticas, mascararCPF } from '/js/admin/dashboard.js'
+    import { escapeHTML } from '/js/admin/utils.js'
 
     // Guard de autenticação
     await protegerRota(supabase)
@@ -139,9 +140,9 @@
 
       tbody.innerHTML = lista.map(socio => `
         <tr>
-          <td>${socio.nome_completo}</td>
+          <td>${escapeHTML(socio.nome_completo)}</td>
           <td class="cpf-masked">${mascararCPF(socio.cpf)}</td>
-          <td>${socio.empresa || '-'}</td>
+          <td>${escapeHTML(socio.empresa || '-')}</td>
           <td>
             <span class="status-badge status-${socio.status}">
               ${socio.status === 'pendente' ? 'Pendente' :

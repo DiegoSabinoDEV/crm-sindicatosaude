@@ -1,10 +1,10 @@
 # SindCore — Segurança Implementada (SINDESEP-PB)
 
 > **Documento-espelho.** Lista o que **já está implementado** no SINDESEP-PB, para comparar
-> lado a lado com o `SindCore_Plano_Seguranca_Comercial.md` (que lista o que é **recomendado**).
-> Cada item referencia a seção correspondente do plano.
+> lado a lado com `SindCore_Plano_Seguranca_Comercial.md` (medidas recomendadas — Revisão 1)
+> e `SindCore_Novas_Medidas_Seguranca.md` (achados da Revisão 2).
 >
-> Legenda: ✅ implementado e verificado · 🟡 parcial (precisa complemento server-side/borda) · 🔲 pendente
+> Legenda: ✅ implementado e verificado · 🟡 parcial (precisa complemento) · 🔲 pendente · 🔴 crítico pendente
 
 Última verificação: 2026-06-27.
 
@@ -16,16 +16,23 @@
 |---|---|
 | Banco (RLS + RPC) | ✅ Base sólida — sem leitura pública de `socios` |
 | Storage (documentos privados) | ✅ Fichas e contracheques privados |
-| Storage (foto carteira — listagem) | 🔲 Bucket público listável (ver Plano 3.1) |
+| Storage (foto carteira — listagem) | 🔲 Bucket público listável (Plano §3.1) |
 | Autenticação CRM | ✅ Supabase Auth + guard de rota |
 | `.htaccess` (público + CRM) | ✅ Ambos os subdomínios protegidos |
-| Headers de segurança HTTP | ✅ Adicionados nesta rodada |
+| Headers HTTP (base) | ✅ X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy |
+| Headers HTTP (HSTS + CSP) | 🟡 Faltam HSTS e Content-Security-Policy (Novas Medidas §2) |
+| XSS via `innerHTML` no CRM | ✅ Corrigido — `escapeHTML()` em `dashboard.html` e `importar.html` (`financeiro.html` adiado) |
+| CSV injection no export | 🔲 `dashboard.js` exportarParaCSV sem sanitização (Novas Medidas §4) |
+| SRI / versão fixada nos CDNs | 🔲 jsPDF e QRCode sem `integrity`; esm.sh sem versão pinada (Novas Medidas §3) |
+| QR Code anti-fraude (bypass) | 🔲 RPC não valida timestamp — print do QR continua válido (Novas Medidas §5) |
+| MFA + captcha login CRM | 🔲 Só `signInWithPassword`, sem MFA nem Turnstile (Novas Medidas §6) |
+| CPF em texto puro (hardening) | 🔲 Opcional — `pgcrypto` como diferencial de produto (Novas Medidas §7) |
 | Rate limit filiação | 🟡 Client-side (complemento ao hCaptcha) |
-| Rate limit carteira | 🟡 Client-side (ver Plano 3.2) |
+| Rate limit carteira | 🟡 Client-side (Plano §3.2) |
 | WAF / borda (Cloudflare) | 🔲 Depende do cliente |
 | hCaptcha produção | 🔲 Chave de dev ainda em uso |
 | Gestão de segredos | 🟡 `supabase.js` fora do Git; webhook n8n hardcoded |
-| Tratamento de erro ao usuário | 🟡 `mapearMensagemErro` ainda pode vazar msg crua |
+| Tratamento de erro ao usuário | 🟡 `mapearMensagemErro` pode vazar msg crua do PostgREST |
 
 ---
 
@@ -96,7 +103,127 @@ continua dependendo de rate limit **server-side** (Plano §3.2 / §8.1).
 
 ---
 
-## 3. Lacunas conhecidas (Plano §3 e §8) — status no SINDESEP
+## 3. Achados da Revisão 2 (`SindCore_Novas_Medidas_Seguranca.md`) — status no SINDESEP
+
+Sete novos achados identificados em revisão de código. Todos pendentes de implementação.
+
+### §N1 — ✅ XSS armazenado via `innerHTML` (CORRIGIDO)
+
+`dashboard.html` e `importar.html` interpolavam dados de sócio direto em `innerHTML` sem escape.
+Qualquer pessoa poderia se filiar com `nome_completo = <img src=x onerror="...">` e o script
+executaria na sessão autenticada do admin — acesso a CPF, token, aprovações.
+
+**Correção aplicada (2026-06-27):**
+- Criado `crm/js/admin/utils.js` com `escapeHTML()` (escapa `& < > " '`; retorna `''` para null).
+- `dashboard.html`: `nome_completo` e `empresa` agora passam por `escapeHTML()` na `renderizarTabela()`.
+- `importar.html`: cabeçalhos e células do preview da planilha agora passam por `escapeHTML()`.
+- `detalhe.html` já estava correto (`textContent`).
+- `financeiro.html`: adiado — página será revisada em rodada futura.
+
+**Status:** ✅ Corrigido nos pontos críticos (formulário público → dashboard admin).
+
+---
+
+### §N2 — 🟡 Headers HTTP completos (HSTS + CSP)
+
+Dos headers recomendados, foram implementados na rodada 1: `X-Frame-Options`, `X-Content-Type-Options`,
+`Referrer-Policy`, `Permissions-Policy`. Faltam dois:
+
+| Header | Status | Observação |
+|---|---|---|
+| `Strict-Transport-Security` (HSTS) | 🔲 | Força HTTPS; requer domínio de produção confirmado antes de ativar |
+| `Content-Security-Policy` (CSP) | 🔲 | Segunda camada contra XSS; requer mapeamento de todas as origens (hCaptcha, esm.sh, Supabase, ipapi.is). Testar em homologação antes — exige 1-2 rodadas de ajuste fino |
+
+CSP parcialmente mapeada (bases das origens usadas):
+```
+default-src 'self';
+script-src 'self' https://js.hcaptcha.com https://esm.sh;
+style-src 'self' 'unsafe-inline';
+img-src 'self' data: https://*.supabase.co;
+connect-src 'self' https://*.supabase.co https://api.ipapi.is https://viacep.com.br;
+frame-src https://*.hcaptcha.com
+```
+> `'unsafe-inline'` em `style-src` é necessário enquanto houver estilos inline no HTML; idealmente
+> eliminar os inlines ou usar `nonce`. Testar sempre com a extensão do browser antes de ativar em produção.
+
+**Status:** 🟡 Parcial — base implementada, faltam HSTS e CSP.
+
+---
+
+### §N3 — 🔲 CDN sem versão fixada e sem SRI
+
+| Problema | Arquivo | Correção |
+|---|---|---|
+| `esm.sh/@supabase/supabase-js` sem versão | `supabase.js` | Pinar ex.: `@supabase/supabase-js@2.45.0` |
+| `jspdf@2.5.1` sem `integrity` | HTML pages | Adicionar `integrity="sha384-..."` + `crossorigin="anonymous"` |
+| `qrcodejs@1.0.0` sem `integrity` | HTML pages | Idem |
+
+hCaptcha fica de fora (script muda dinamicamente por design, SRI não se aplica).
+Hash SRI gerado pelo próprio jsdelivr: acessar URL com `?sri` ou usar srihash.org.
+
+**Status:** 🔲 Pendente — risco de supply chain se CDN for comprometido.
+
+---
+
+### §N4 — 🔲 CSV injection no export
+
+`dashboard.js → exportarParaCSV()` monta CSV sem sanitizar valores. Sócio com `nome_completo`
+começando em `=`, `+`, `-` ou `@` pode injetar fórmula executável quando o admin abre o CSV no Excel/Sheets.
+
+Correção em uma função:
+```js
+function sanitizarCelulaCSV(valor) {
+  const str = String(valor ?? '')
+  return /^[=+\-@]/.test(str) ? `'${str}` : str
+}
+```
+
+**Status:** 🔲 Pendente — edição local simples, sem dependência externa.
+
+---
+
+### §N5 — 🔲 QR Code dinâmico não valida timestamp na RPC
+
+A RPC `verificar_carteira(p_carteira_id)` aceita o mesmo UUID indefinidamente até a carteira
+vencer. Um print do QR continua validando como "ativo" — o mecanismo anti-fraude existe só
+visualmente (feixe de luz + relógio na tela).
+
+Para fechar: RPC precisaria validar um token de curta duração (ex.: HMAC com expiração de 60s),
+não só o UUID fixo da carteira. Exige redesenho do fluxo de geração + verificação.
+
+**Status:** 🔲 Pendente — revisar se o nível de segurança atual é suficiente para o uso real
+antes de investir no redesenho (baixo risco relativo aos itens 1, 4).
+
+---
+
+### §N6 — 🔲 Login do CRM sem segundo fator nem captcha
+
+`auth.js` usa só `signInWithPassword`. O painel concentra CPF, contracheque e documento de todos
+os sócios — é alvo natural de credential stuffing assim que o subdomínio for descoberto.
+
+Ações recomendadas:
+1. Habilitar **MFA (TOTP)** no Supabase Auth para contas admin (configurado no painel Supabase — cliente).
+2. Adicionar **Cloudflare Turnstile** invisível na tela de login do CRM (`crm/index.html`).
+
+**Status:** 🔲 Pendente — item 1 depende do cliente no Supabase; item 2 é edição local.
+
+---
+
+### §N7 — 🔲 CPF em texto puro (hardening opcional)
+
+`cpf` é `TEXT` simples, protegido por RLS. Em caso de dump de backup ou vazamento de
+`service_role key`, o CPF fica exposto em claro. Criptografia via `pgcrypto`
+(`pgp_sym_encrypt`/`pgp_sym_decrypt`) é diferencial de produto para clientes que exigem
+comprovação de segurança em due diligence.
+
+Impacto de implementar: toda busca por CPF passa pela função de descriptografia na RPC
+(a `buscar_socio_carteira` já não retorna o CPF, então o impacto é baixo).
+
+**Status:** 🔲 Opcional — fazer por último, após todos os itens críticos fechados.
+
+---
+
+## 4. Lacunas conhecidas (Plano §3 e §8) — status no SINDESEP
 
 | Ref. Plano | Lacuna | Status SINDESEP | Observação |
 |---|---|---|---|
@@ -133,18 +260,29 @@ continua dependendo de rate limit **server-side** (Plano §3.2 / §8.1).
 
 ---
 
-## 5. Próximas prioridades de segurança (ordem sugerida)
+## 6. Próximas prioridades consolidadas (Plano §7 + Novas Medidas)
 
-Seguindo o plano de ação priorizado (Plano §7), o que dá para atacar a seguir **sem depender de terceiros**:
+Ordem combinando os dois documentos de referência. Itens locais = editáveis sem dependência externa.
 
-1. **Rate limit server-side** (carteira + filiação) — tabela `rpc_rate_limit` + lógica nas RPCs. Depende de rodar SQL no Supabase (tarefa do cliente). Fecha §3.2 e a parte forte da §2.3.
-2. **Mensagem de erro genérica** em `mapearMensagemErro` — não devolver `error.message` cru (§8.4). Edição local, sem dependência.
-3. **Log no `catch` da captura de IP** (§8.2) — edição local simples.
-4. **Fechar listagem do bucket `fotos-carteira`** (§3.1) — exige ajuste de policy/SQL no Supabase.
-5. **Webhook n8n por configuração** (§8.3) — mover para arquivo de config não commitado.
+| Prioridade | Item | Fonte | Dependência |
+|---|---|---|---|
+| ✅ 1 | ~~**XSS via `innerHTML`**~~ — corrigido em `dashboard.html` e `importar.html` | Novas Medidas §1 | — |
+| 🔴 2 | **CSV injection** — `sanitizarCelulaCSV()` em `dashboard.js` | Novas Medidas §4 | Local |
+| 🔴 3 | **Erro cru ao usuário** — `mapearMensagemErro` com fallback genérico | Plano §8.4 | Local |
+| 🟠 4 | **Log no `catch` de IP** — `console.warn` em `filiacao.js:271` | Plano §8.2 | Local |
+| 🟠 5 | **Rate limit server-side** (carteira + filiação) — tabela `rpc_rate_limit` nas RPCs | Plano §3.2 | SQL no Supabase (cliente) |
+| 🟠 6 | **Fechar listagem do bucket `fotos-carteira`** — policy ou bucket privado + signed URL | Plano §3.1 | SQL/painel Supabase (cliente) |
+| 🟠 7 | **CSP + HSTS** nos `.htaccess` (após mapear origens em homologação) | Novas Medidas §2 | Local — requer teste |
+| 🟡 8 | **Turnstile no login do CRM** (`crm/index.html`) | Novas Medidas §6 | Local + conta Cloudflare |
+| 🟡 9 | **SRI + versão fixada nos CDNs** (`jspdf`, `qrcodejs`, `esm.sh`) | Novas Medidas §3 | Local |
+| 🟡 10 | **Webhook n8n por configuração** — fora do código, em arquivo não commitado | Plano §8.3 | Local |
+| ⚪ 11 | **MFA (TOTP) para admins** no Supabase Auth | Novas Medidas §6 | Painel Supabase (cliente) |
+| ⚪ 12 | **QR Code com token de curta duração** — redesenho da RPC + geração | Novas Medidas §5 | Local + SQL |
+| ⚪ 13 | **CPF criptografado** (`pgcrypto`) | Novas Medidas §7 | SQL (opcional) |
 
-Dependem do cliente / infra externa: hCaptcha produção (§3.3), Cloudflare WAF + Turnstile (§3.4),
-log de auditoria do CRM (§3.6), DPA e procedimentos de fim de contrato (§5).
+Dependem do cliente / infra externa e não têm data definida: hCaptcha produção (§3.3),
+Cloudflare WAF + Turnstile no formulário público (§3.4), n8n Error Trigger (§3.5),
+log de auditoria do CRM (§3.6), DPA / procedimentos de fim de contrato (Plano §5).
 
 ---
 
@@ -153,6 +291,8 @@ log de auditoria do CRM (§3.6), DPA e procedimentos de fim de contrato (§5).
 | Data | Mudança |
 |---|---|
 | 2026-06-27 | Criação do documento. Implementado: headers de segurança HTTP (`hostinger/.htaccess`), `crm/.htaccess` (novo), rate limit client-side no formulário de filiação. Corrigido bloqueio indevido do `manifest.json` |
+| 2026-06-27 | Incorporados 7 achados de `SindCore_Novas_Medidas_Seguranca.md` (Revisão 2). Prioridades consolidadas com os dois documentos de referência. XSS via `innerHTML` elevado para prioridade crítica |
+| 2026-06-27 | XSS §N1 corrigido: criado `crm/js/admin/utils.js` com `escapeHTML()`; aplicado em `dashboard.html` (`nome_completo`, `empresa`) e `importar.html` (preview planilha). `financeiro.html` adiado |
 
 ---
 
