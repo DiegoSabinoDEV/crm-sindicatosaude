@@ -1,0 +1,8 @@
+Options -Indexes
+ErrorDocument 403 /index.html
+ErrorDocument 404 /index.html
+
+<FilesMatch "\.(sql|json|md|env)$">
+  Order Allow,Deny
+  Deny from all
+</FilesMatch>

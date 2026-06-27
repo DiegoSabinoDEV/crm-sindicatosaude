@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Filiação digital SINDESEPPB-PB — Sindicato dos Trabalhadores em Empresas de Energia Elétrica">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#1a3a5c">
+  <link rel="icon" type="image/jpeg" href="/logo/faviSINDESEP.png">
+  <link rel="stylesheet" href="/css/admin/admin.css">
+  <link rel="stylesheet" href="/css/admin/novo.css">
+  <title>Novo Sócio - CRM Filiação Sindical</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div>
+          <h1 style="color: var(--primary);">Novo Sócio</h1>
+          <p style="color: var(--muted); margin-top: 4px;">Cadastro Manual</p>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <a href="dashboard.html" class="btn btn-secondary">← Voltar</a>
+          <a href="financeiro.html" class="btn btn-secondary">Financeiro</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container-md">
+    <div id="alerta" class="alert"></div>
+
+    <div class="progress-steps">
+      <div class="step active">
+        <span class="step-number">1</span>
+        <span>Dados Pessoais</span>
+      </div>
+      <div class="step">
+        <span class="step-number">2</span>
+        <span>Contato</span>
+      </div>
+      <div class="step">
+        <span class="step-number">3</span>
+        <span>Endereço</span>
+      </div>
+      <div class="step">
+        <span class="step-number">4</span>
+        <span>Profissional</span>
+      </div>
+      <div class="step">
+        <span class="step-number">5</span>
+        <span>Revisão</span>
+      </div>
+    </div>
+
+    <form id="formulario-novo-socio">
+      <!-- Seção 1: Dados Pessoais -->
+      <div class="form-section">
+        <h2>Dados Pessoais</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="nome">Nome Completo <span class="required">*</span></label>
+            <input type="text" id="nome" name="nome" placeholder="João da Silva" required>
+            <div class="form-error"></div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cpf">CPF <span class="required">*</span></label>
+            <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" maxlength="14" required>
+            <div class="form-error"></div>
+          </div>
+          <div class="form-group">
+            <label for="rg">RG</label>
+            <input type="text" id="rg" name="rg" placeholder="0.000.000">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="nascimento">Data de Nascimento <span class="required">*</span></label>
+            <input type="date" id="nascimento" name="nascimento" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="dataFiliacao">Data de Filiação <span class="required">*</span></label>
+            <input type="date" id="dataFiliacao" name="dataFiliacao" required>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seção 2: Contato -->
+      <div class="form-section">
+        <h2>Contato</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="joao@email.com">
+          </div>
+          <div class="form-group">
+            <label for="whatsapp">Telefone / WhatsApp <span class="required">*</span></label>
+            <input type="tel" id="whatsapp" name="whatsapp" placeholder="(83) 99999-9999" required>
+            <div class="form-error"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seção 3: Endereço -->
+      <div class="form-section">
+        <h2>Endereço</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cep">CEP</label>
+            <input type="text" id="cep" name="cep" placeholder="00000-000" maxlength="9">
+            <div class="form-hint">Auto-preenche o endereço ao sair do campo</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="logradouro">Logradouro</label>
+            <input type="text" id="logradouro" name="logradouro" placeholder="Rua, Avenida, etc">
+          </div>
+          <div class="form-group">
+            <label for="numero">Número</label>
+            <input type="text" id="numero" name="numero" placeholder="123">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="complemento">Complemento</label>
+            <input type="text" id="complemento" name="complemento" placeholder="Apto 456">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="bairro">Bairro</label>
+            <input type="text" id="bairro" name="bairro" placeholder="Centro">
+          </div>
+          <div class="form-group">
+            <label for="cidade">Cidade</label>
+            <input type="text" id="cidade" name="cidade" placeholder="São Paulo">
+          </div>
+          <div class="form-group">
+            <label for="estado">Estado</label>
+            <input type="text" id="estado" name="estado" placeholder="SP" maxlength="2">
+          </div>
+        </div>
+      </div>
+
+      <!-- Seção 4: Dados Profissionais -->
+      <div class="form-section">
+        <h2>Dados Profissionais</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="empresa">Local de Trabalho</label>
+            <input type="text" id="empresa" name="empresa" placeholder="Hospital ou Clínica">
+          </div>
+          <div class="form-group">
+            <label for="cargo">Cargo</label>
+            <input type="text" id="cargo" name="cargo" placeholder="Técnico de Enfermagem">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="segunda-empresa">Trabalha em outra empresa privada na área da saúde? (Opcional)</label>
+            <textarea id="segunda-empresa" name="segunda-empresa" rows="2" placeholder="Ex.: Clínica XYZ — Auxiliar de Enfermagem"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seção 5: Revisão -->
+      <div class="form-section">
+        <h2>Revisão e Confirmação</h2>
+        <p style="color: var(--muted); margin-bottom: 16px;">
+          Revise os dados antes de cadastrar o novo sócio. Campos marcados com <span class="required">*</span> são obrigatórios.
+        </p>
+        <div class="form-row">
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="confirmar" name="confirmar" required>
+              Confirmo que os dados estão corretos e completos
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a href="dashboard.html" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary btn-lg">
+          <span class="spinner" id="spinner" style="display: none;"></span>
+          Cadastrar Sócio
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <script type="module">
+    import { supabase } from '/js/supabase.js'
+    import { protegerRota, exibirAlerta, formatarMensagemErro } from '/js/admin/auth.js'
+    import { cadastrarSocio, validarFormulario, buscarCEP } from '/js/admin/novo.js'
+
+    // Guard de autenticação
+    const session = await protegerRota(supabase)
+    const emailAdmin = session.user.email
+
+    // Pré-preencher Data de Filiação com hoje
+    document.getElementById('dataFiliacao').value = new Date().toISOString().split('T')[0]
+
+    const formulario = document.getElementById('formulario-novo-socio')
+    const alerta = document.getElementById('alerta')
+    const spinner = document.getElementById('spinner')
+    const cepInput = document.getElementById('cep')
+    const confirmar = document.getElementById('confirmar')
+
+    // Auto-preencher endereço ao inserir CEP
+    cepInput.addEventListener('blur', async () => {
+      const cep = cepInput.value.replace(/\D/g, '')
+      if (cep.length === 8) {
+        try {
+          const endereco = await buscarCEP(cep)
+          if (endereco) {
+            document.getElementById('logradouro').value = endereco.logradouro || ''
+            document.getElementById('bairro').value = endereco.bairro || ''
+            document.getElementById('cidade').value = endereco.localidade || ''
+            document.getElementById('estado').value = endereco.uf || ''
+          }
+        } catch (error) {
+          console.warn('CEP não encontrado:', error)
+        }
+      }
+    })
+
+    // Validar e cadastrar
+    formulario.addEventListener('submit', async (e) => {
+      e.preventDefault()
+
+      // Validar campos obrigatórios
+      const erros = validarFormulario(formulario)
+      if (erros.length > 0) {
+        exibirAlerta(alerta, `Erros encontrados: ${erros.join(', ')}`, 'error')
+        return
+      }
+
+      if (!confirmar.checked) {
+        exibirAlerta(alerta, 'Você deve confirmar que os dados estão corretos.', 'error')
+        return
+      }
+
+      const dataFiliacao = document.getElementById('dataFiliacao').value
+      if (!dataFiliacao) {
+        exibirAlerta(alerta, 'A data de filiação é obrigatória.', 'error')
+        return
+      }
+      if (dataFiliacao > new Date().toISOString().split('T')[0]) {
+        alert('A data de filiação não pode ser futura.')
+        return
+      }
+
+      // Desabilitar botão
+      const btnSubmit = formulario.querySelector('button[type="submit"]')
+      btnSubmit.disabled = true
+      spinner.style.display = 'inline-block'
+
+      try {
+        // Coletar dados
+        const whatsapp = document.getElementById('whatsapp').value.trim()
+        const dados = {
+          nome_completo: document.getElementById('nome').value.trim(),
+          cpf: document.getElementById('cpf').value.replace(/\D/g, ''),
+          rg: document.getElementById('rg').value.trim() || null,
+          data_nascimento: document.getElementById('nascimento').value || null,
+          email: document.getElementById('email').value.trim() || null,
+          telefone: whatsapp,
+          whatsapp: whatsapp,
+          cep: document.getElementById('cep').value.trim() || null,
+          logradouro: document.getElementById('logradouro').value.trim() || null,
+          numero: document.getElementById('numero').value.trim() || null,
+          complemento: document.getElementById('complemento').value.trim() || null,
+          bairro: document.getElementById('bairro').value.trim() || null,
+          cidade: document.getElementById('cidade').value.trim() || null,
+          estado: document.getElementById('estado').value.trim() || null,
+          empresa: document.getElementById('empresa').value.trim() || null,
+          cargo: document.getElementById('cargo').value.trim() || null,
+          segunda_empresa: document.getElementById('segunda-empresa').value.trim() || null,
+          forma_pagamento: 'folha',
+          autorizacao_desconto: true,
+          data_filiacao: dataFiliacao,
+          status: 'aprovado',
+          origem: 'manual',
+          aprovado_por: emailAdmin,
+          aprovado_em: new Date().toISOString(),
+          consentimento_lgpd: true,
+          data_consentimento_lgpd: new Date().toISOString(),
+          ip_consentimento: 'manual'
+        }
+
+        await cadastrarSocio(supabase, dados)
+        exibirAlerta(alerta, 'Sócio cadastrado com sucesso!', 'success')
+        setTimeout(() => window.location.href = './dashboard.html', 1500)
+      } catch (error) {
+        btnSubmit.disabled = false
+        spinner.style.display = 'none'
+        exibirAlerta(alerta, formatarMensagemErro(error), 'error')
+      }
+    })
+  </script>
+</body>
+</html>

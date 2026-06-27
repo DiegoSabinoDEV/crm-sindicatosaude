@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Filiação digital SINDESEPPB-PB — Sindicato dos Trabalhadores em Empresas de Energia Elétrica">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#1a3a5c">
+  <link rel="icon" type="image/jpeg" href="/logo/faviSINDESEP.png">
+  <link rel="stylesheet" href="/css/admin/admin.css">
+  <link rel="stylesheet" href="/css/admin/detalhe.css">
+  <title>Detalhes do Sócio - CRM Filiação Sindical</title>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="header-title">
+        <h1>Detalhes do Sócio</h1>
+      </div>
+      <div class="header-actions">
+        <a href="dashboard.html" class="btn btn-secondary">← Voltar</a>
+        <a href="financeiro.html" class="btn btn-secondary">Financeiro</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div id="alerta" class="alert"></div>
+    <div id="carregando" class="loading">
+      <span class="spinner"></span>Carregando dados...
+    </div>
+
+    <div id="conteudo" style="display: none;">
+      <!-- Status Card -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: -24px -24px 16px -24px; padding: 24px; border-bottom: 1px solid var(--border);">
+          <div>
+            <h2 style="margin: 0; border: none; padding: 0; font-size: 20px;">
+              <span id="nome-socio"></span>
+            </h2>
+            <p style="color: var(--muted); font-size: 13px; margin-top: 4px;">ID: <span id="id-socio"></span></p>
+          </div>
+          <span id="status-badge" class="status-badge"></span>
+        </div>
+      </div>
+
+      <!-- Dados Pessoais -->
+      <div class="card">
+        <h2>Dados Pessoais</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">CPF</span>
+            <span class="info-value cpf" id="cpf-socio"></span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">RG</span>
+            <span class="info-value" id="rg-socio">-</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Data de Nascimento</span>
+            <span class="info-value" id="nascimento-socio">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contato -->
+      <div class="card">
+        <h2>Contato</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Email</span>
+            <span class="info-value" id="email-socio">-</span>
+            <input class="edit-input" id="edit-email" type="email" placeholder="Email">
+          </div>
+          <div class="info-item">
+            <span class="info-label">Telefone</span>
+            <span class="info-value" id="telefone-socio">-</span>
+            <input class="edit-input" id="edit-telefone" type="text" placeholder="Telefone">
+          </div>
+          <div class="info-item">
+            <span class="info-label">WhatsApp</span>
+            <span class="info-value" id="whatsapp-socio">-</span>
+            <input class="edit-input" id="edit-whatsapp" type="text" placeholder="WhatsApp">
+          </div>
+        </div>
+      </div>
+
+      <!-- Endereço -->
+      <div class="card">
+        <h2>Endereço</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">CEP</span>
+            <span class="info-value" id="cep-socio">-</span>
+            <input class="edit-input" id="edit-cep" type="text" placeholder="CEP">
+          </div>
+          <div class="info-item">
+            <span class="info-label">Logradouro</span>
+            <span class="info-value" id="logradouro-socio">-</span>
+            <input class="edit-input" id="edit-logradouro" type="text" placeholder="Logradouro">
+          </div>
+          <div class="info-item">
+            <span class="info-label">Número</span>
+            <span class="info-value" id="numero-socio">-</span>
+            <input class="edit-input" id="edit-numero" type="text" placeholder="Número">
+          </div>
+          <div class="info-item">
+            <span class="info-label">Complemento</span>
+            <span class="info-value" id="complemento-socio">-</span>
+            <input class="edit-input" id="edit-complemento" type="text" placeholder="Complemento">
+          </div>
+          <div class="info-item">
+            <span class="info-label">Bairro</span>
+            <span class="info-value" id="bairro-socio">-</span>
+            <input class="edit-input" id="edit-bairro" type="text" placeholder="Bairro">
+          </div>
+          <div class="info-item">
+            <span class="info-label">Cidade/UF</span>
+            <span class="info-value" id="cidade-socio">-</span>
+            <div class="edit-input edit-cidade-row" id="edit-cidade-row">
+              <input id="edit-cidade" type="text" placeholder="Cidade">
+              <input id="edit-estado" type="text" placeholder="UF" maxlength="2">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dados Profissionais -->
+      <div class="card">
+        <h2>Dados Profissionais</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Local de Trabalho</span>
+            <span class="info-value" id="empresa-socio">-</span>
+            <input class="edit-input" id="edit-empresa" type="text" placeholder="Hospital ou Clínica">
+          </div>
+          <div class="info-item">
+            <span class="info-label">Cargo</span>
+            <span class="info-value" id="cargo-socio">-</span>
+            <input class="edit-input" id="edit-cargo" type="text" placeholder="Cargo">
+          </div>
+          <div class="info-item">
+            <span class="info-label">Outra empresa na área da saúde</span>
+            <span class="info-value" id="segunda-empresa-socio">-</span>
+            <textarea class="edit-input" id="edit-segunda-empresa" rows="2" placeholder="Ex.: Clínica XYZ — Auxiliar de Enfermagem"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contribuição -->
+      <div class="card">
+        <h2>Contribuição Sindical</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Forma</span>
+            <span class="info-value">Desconto em contracheque</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Valor</span>
+            <span class="info-value">1% do salário base</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagamentos -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: -24px -24px 16px -24px; padding: 24px; border-bottom: 1px solid var(--border);">
+          <h2 style="margin: 0; border: none; padding: 0; font-size: 18px;">Histórico de Pagamentos</h2>
+          <span id="badge-adimplencia" class="status-badge" style="margin: 0;"></span>
+        </div>
+        <div id="tabela-pagamentos" style="margin: 16px 0; overflow-x: auto;">
+          <p style="color: var(--muted); text-align: center; padding: 20px; font-size: 14px;">Carregando pagamentos...</p>
+        </div>
+        <div style="padding-top: 16px; border-top: 1px solid var(--border); margin-top: 16px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+            <input type="date" id="input-data-pagamento" title="Data de Pagamento" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px;">
+            <input type="number" id="input-valor-pagamento" placeholder="Valor (R$)" step="0.01" min="0" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px;">
+            <select id="input-forma-pagamento" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px; background: white;">
+              <option value="">Forma</option>
+              <option value="pix">PIX</option>
+              <option value="boleto">Boleto</option>
+              <option value="especie">Espécie</option>
+              <option value="folha">Folha</option>
+            </select>
+          </div>
+          <button id="btn-registrar-pagamento" class="btn btn-primary" style="width: 100%;">➕ Registrar Pagamento</button>
+        </div>
+      </div>
+
+      <!-- Arquivos -->
+      <div class="card">
+        <h2>Arquivos</h2>
+        <div class="file-section">
+          <div class="file-item">
+            <div class="file-info">
+              <div class="file-name">Ficha de Filiação (PDF)</div>
+              <div class="file-date" id="ficha-date"></div>
+            </div>
+            <a id="btn-ficha" href="#" target="_blank" class="btn-file" style="display: none;">Baixar</a>
+            <span id="ficha-vazio" style="color: var(--muted); font-size: 12px;">Não anexado</span>
+          </div>
+          <div class="file-item">
+            <div class="file-info">
+              <div class="file-name">Contracheque</div>
+              <div class="file-date" id="contracheque-date"></div>
+            </div>
+            <a id="btn-contracheque" href="#" target="_blank" class="btn-file" style="display: none;">Baixar</a>
+            <span id="contracheque-vazio" style="color: var(--muted); font-size: 12px;">Não anexado</span>
+          </div>
+          <!-- ASSINATURA: bloco oculto do painel (download removido da UI; assinatura continua no PDF)
+          <div class="file-item">
+            <div class="file-info">
+              <div class="file-name">Assinatura (PNG)</div>
+              <div class="file-date" id="assinatura-date"></div>
+            </div>
+            <a id="btn-assinatura" href="#" target="_blank" class="btn-file" style="display: none;">Baixar</a>
+            <span id="assinatura-vazio" style="color: var(--muted); font-size: 12px;">Não anexado</span>
+          </div>
+          -->
+        </div>
+      </div>
+
+      <!-- Ações -->
+      <div class="actions-section">
+        <div class="actions-title">Ações</div>
+        <div class="actions-grid">
+          <button id="btn-aprovar" class="btn btn-success" style="display: none;">✓ Aprovar</button>
+          <button id="btn-recusar" class="btn btn-warning" style="display: none;">✗ Recusar</button>
+          <button id="btn-excluir" class="btn btn-danger" style="display: none;">🗑 Excluir</button>
+          <button id="btn-editar" class="btn btn-secondary">✏ Editar Dados</button>
+        </div>
+
+        <div id="edit-actions">
+          <button id="btn-salvar-edicao" class="btn btn-primary">💾 Salvar</button>
+          <button id="btn-cancelar-edicao" class="btn btn-secondary">✕ Cancelar</button>
+        </div>
+
+        <div id="form-recusao" class="recusao-form">
+          <textarea id="motivo-recusa" placeholder="Explique o motivo da recusa..."></textarea>
+          <div class="recusao-actions">
+            <button id="btn-cancelar-recusa" class="btn btn-secondary">Cancelar</button>
+            <button id="btn-confirmar-recusa" class="btn btn-warning">Confirmar Recusa</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auditoria -->
+      <div class="card">
+        <h2>Auditoria</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Data de Filiação</span>
+            <span class="info-value" id="filiacao-date">-</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Aprovado Por</span>
+            <span class="info-value" id="aprovado-por">-</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Data de Aprovação</span>
+            <span class="info-value" id="aprovado-data">-</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Motivo da Recusa</span>
+            <span class="info-value" id="motivo-recusa-display">-</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">IP de Consentimento</span>
+            <span class="info-value" id="ip-socio">-</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmação -->
+  <div id="modal-backdrop" class="modal-backdrop"></div>
+  <div id="modal-confirmacao" class="modal">
+    <h3 id="modal-titulo">Confirmar ação</h3>
+    <p id="modal-mensagem">Tem certeza que deseja continuar?</p>
+    <div class="modal-actions">
+      <button id="btn-modal-cancelar" class="btn btn-secondary">Cancelar</button>
+      <button id="btn-modal-confirmar" class="btn btn-danger">Confirmar</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from '/js/supabase.js'
+    import { protegerRota, exibirAlerta, formatarMensagemErro, obterUsuarioAtual } from '/js/admin/auth.js'
+    import {
+      carregarSocio,
+      obterURLAssinada,
+      aprovarSocio,
+      recusarSocio,
+      excluirSocio,
+      mascararCPF,
+      formatarData,
+      carregarPagamentos,
+      registrarPagamento,
+      toggleAdimplente,
+      editarSocio
+    } from '/js/admin/detalhe.js'
+
+    // Guard de autenticação
+    const session = await protegerRota(supabase)
+
+    const params = new URLSearchParams(window.location.search)
+    const socioId = params.get('id')
+
+    if (!socioId) {
+      window.location.href = './dashboard.html'
+    }
+
+    // Elementos
+    const carregando = document.getElementById('carregando')
+    const conteudo = document.getElementById('conteudo')
+    const alerta = document.getElementById('alerta')
+    const btnAprovar = document.getElementById('btn-aprovar')
+    const btnRecusar = document.getElementById('btn-recusar')
+    const btnExcluir = document.getElementById('btn-excluir')
+    const formRecusao = document.getElementById('form-recusao')
+    const motivoRecusa = document.getElementById('motivo-recusa')
+    const btnCancelarRecusa = document.getElementById('btn-cancelar-recusa')
+    const btnConfirmarRecusa = document.getElementById('btn-confirmar-recusa')
+    const modal = document.getElementById('modal-confirmacao')
+    const modalBackdrop = document.getElementById('modal-backdrop')
+    const modalTitulo = document.getElementById('modal-titulo')
+    const modalMensagem = document.getElementById('modal-mensagem')
+    const btnModalCancelar = document.getElementById('btn-modal-cancelar')
+    const btnModalConfirmar = document.getElementById('btn-modal-confirmar')
+    const tabelaPagamentos = document.getElementById('tabela-pagamentos')
+    const inputDataPagamento = document.getElementById('input-data-pagamento')
+    const inputValorPagamento = document.getElementById('input-valor-pagamento')
+    inputDataPagamento.value = new Date().toISOString().split('T')[0]
+    const inputFormaPagamento = document.getElementById('input-forma-pagamento')
+    const btnRegistrarPagamento = document.getElementById('btn-registrar-pagamento')
+    const badgeAdimplencia = document.getElementById('badge-adimplencia')
+
+    let acaoAtual = null
+    let socioAtual = null
+    let adimplenteAtual = true
+
+    // Mapa de campos editáveis: span de exibição ↔ input de edição
+    const EDIT_MAP = [
+      { spanId: 'email-socio',       inputId: 'edit-email' },
+      { spanId: 'whatsapp-socio',    inputId: 'edit-whatsapp' },
+      { spanId: 'telefone-socio',    inputId: 'edit-telefone' },
+      { spanId: 'cep-socio',         inputId: 'edit-cep' },
+      { spanId: 'logradouro-socio',  inputId: 'edit-logradouro' },
+      { spanId: 'numero-socio',      inputId: 'edit-numero' },
+      { spanId: 'complemento-socio', inputId: 'edit-complemento' },
+      { spanId: 'bairro-socio',      inputId: 'edit-bairro' },
+      { spanId: 'cidade-socio',      inputId: 'edit-cidade-row', isRow: true },
+      { spanId: 'empresa-socio',          inputId: 'edit-empresa' },
+      { spanId: 'cargo-socio',            inputId: 'edit-cargo' },
+      { spanId: 'segunda-empresa-socio',  inputId: 'edit-segunda-empresa' },
+    ]
+
+    const btnEditar = document.getElementById('btn-editar')
+    const editActions = document.getElementById('edit-actions')
+    const btnSalvarEdicao = document.getElementById('btn-salvar-edicao')
+    const btnCancelarEdicao = document.getElementById('btn-cancelar-edicao')
+
+    function enterEditMode() {
+      const s = socioAtual
+      document.getElementById('edit-email').value = s.email || ''
+      document.getElementById('edit-whatsapp').value = s.whatsapp || ''
+      document.getElementById('edit-telefone').value = s.whatsapp || ''
+      document.getElementById('edit-cep').value = s.cep || ''
+      document.getElementById('edit-logradouro').value = s.logradouro || ''
+      document.getElementById('edit-numero').value = s.numero || ''
+      document.getElementById('edit-complemento').value = s.complemento || ''
+      document.getElementById('edit-bairro').value = s.bairro || ''
+      document.getElementById('edit-cidade').value = s.cidade || ''
+      document.getElementById('edit-estado').value = s.estado || ''
+      document.getElementById('edit-empresa').value = s.empresa || ''
+      document.getElementById('edit-cargo').value = s.cargo || ''
+      document.getElementById('edit-segunda-empresa').value = s.segunda_empresa || ''
+
+      EDIT_MAP.forEach(({ spanId, inputId, isRow }) => {
+        document.getElementById(spanId).style.display = 'none'
+        document.getElementById(inputId).style.display = isRow ? 'flex' : 'block'
+      })
+      btnEditar.style.display = 'none'
+      editActions.style.display = 'flex'
+    }
+
+    function exitEditMode() {
+      EDIT_MAP.forEach(({ spanId, inputId }) => {
+        document.getElementById(spanId).style.display = ''
+        document.getElementById(inputId).style.display = 'none'
+      })
+      btnEditar.style.display = ''
+      editActions.style.display = 'none'
+    }
+
+    async function salvarEdicao() {
+      const email = document.getElementById('edit-email').value.trim()
+      const whatsapp = document.getElementById('edit-whatsapp').value.trim()
+
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        exibirAlerta(alerta, 'Formato de e-mail inválido', 'error')
+        return
+      }
+      if (!whatsapp) {
+        exibirAlerta(alerta, 'WhatsApp é obrigatório', 'error')
+        return
+      }
+
+      const dados = {
+        email: email || null,
+        whatsapp,
+        telefone: whatsapp,
+        cep: document.getElementById('edit-cep').value.trim() || null,
+        logradouro: document.getElementById('edit-logradouro').value.trim() || null,
+        numero: document.getElementById('edit-numero').value.trim() || null,
+        complemento: document.getElementById('edit-complemento').value.trim() || null,
+        bairro: document.getElementById('edit-bairro').value.trim() || null,
+        cidade: document.getElementById('edit-cidade').value.trim() || null,
+        estado: document.getElementById('edit-estado').value.trim() || null,
+        empresa: document.getElementById('edit-empresa').value.trim() || null,
+        cargo: document.getElementById('edit-cargo').value.trim() || null,
+        segunda_empresa: document.getElementById('edit-segunda-empresa').value.trim() || null,
+      }
+
+      try {
+        btnSalvarEdicao.disabled = true
+        btnSalvarEdicao.textContent = 'Salvando...'
+        await editarSocio(supabase, socioId, dados)
+        exitEditMode()
+        await carregarDados()
+        exibirAlerta(alerta, 'Dados atualizados com sucesso!', 'success')
+      } catch (error) {
+        exibirAlerta(alerta, formatarMensagemErro(error), 'error')
+      } finally {
+        btnSalvarEdicao.disabled = false
+        btnSalvarEdicao.textContent = '💾 Salvar'
+      }
+    }
+
+    btnEditar.addEventListener('click', enterEditMode)
+    btnCancelarEdicao.addEventListener('click', exitEditMode)
+    btnSalvarEdicao.addEventListener('click', salvarEdicao)
+
+    // Carregar dados
+    async function carregarDados() {
+      try {
+        carregando.style.display = 'block'
+        const socio = await carregarSocio(supabase, socioId)
+
+        // Preencher dados
+        document.getElementById('nome-socio').textContent = socio.nome_completo
+        document.getElementById('id-socio').textContent = socioId
+        document.getElementById('cpf-socio').textContent = mascararCPF(socio.cpf)
+        document.getElementById('rg-socio').textContent = socio.rg || '-'
+        document.getElementById('nascimento-socio').textContent = formatarData(socio.data_nascimento) || '-'
+        document.getElementById('email-socio').textContent = socio.email || '-'
+        document.getElementById('telefone-socio').textContent = socio.whatsapp || '-'
+        document.getElementById('whatsapp-socio').textContent = socio.whatsapp || '-'
+        document.getElementById('cep-socio').textContent = socio.cep || '-'
+        document.getElementById('logradouro-socio').textContent = socio.logradouro || '-'
+        document.getElementById('numero-socio').textContent = socio.numero || '-'
+        document.getElementById('complemento-socio').textContent = socio.complemento || '-'
+        document.getElementById('bairro-socio').textContent = socio.bairro || '-'
+        document.getElementById('cidade-socio').textContent = socio.cidade && socio.estado ? `${socio.cidade}/${socio.estado}` : '-'
+        document.getElementById('empresa-socio').textContent = socio.empresa || '-'
+        document.getElementById('cargo-socio').textContent = socio.cargo || '-'
+        document.getElementById('segunda-empresa-socio').textContent = socio.segunda_empresa || '-'
+        document.getElementById('filiacao-date').textContent = formatarData(socio.data_filiacao) || '-'
+        document.getElementById('aprovado-por').textContent = socio.aprovado_por || '-'
+        document.getElementById('aprovado-data').textContent = formatarData(socio.aprovado_em) || '-'
+        document.getElementById('motivo-recusa-display').textContent = socio.motivo_recusa || '-'
+        document.getElementById('ip-socio').textContent = socio.ip_consentimento || '-'
+
+        // Status badge
+        const statusBadge = document.getElementById('status-badge')
+        statusBadge.className = `status-badge status-${socio.status}`
+        statusBadge.textContent = socio.status === 'pendente' ? 'PENDENTE' : socio.status === 'aprovado' ? 'APROVADO' : 'RECUSADO'
+
+        // Ações disponíveis
+        if (socio.status === 'pendente') {
+          btnAprovar.style.display = 'inline-flex'
+          btnRecusar.style.display = 'inline-flex'
+        }
+        btnExcluir.style.display = 'inline-flex'
+
+        // Arquivos
+        if (socio.ficha_pdf_url) {
+          document.getElementById('btn-ficha').style.display = 'inline-block'
+          document.getElementById('ficha-vazio').style.display = 'none'
+          document.getElementById('btn-ficha').href = await obterURLAssinada(supabase, 'fichas', socio.ficha_pdf_url)
+        }
+        if (socio.contracheque_url) {
+          document.getElementById('btn-contracheque').style.display = 'inline-block'
+          document.getElementById('contracheque-vazio').style.display = 'none'
+          document.getElementById('btn-contracheque').href = await obterURLAssinada(supabase, 'contracheques', socio.contracheque_url)
+        }
+        // ASSINATURA: bloco desativado — botão oculto da UI; assinatura continua no PDF
+        // if (socio.assinatura_url) {
+        //   document.getElementById('btn-assinatura').style.display = 'inline-block'
+        //   document.getElementById('assinatura-vazio').style.display = 'none'
+        //   document.getElementById('btn-assinatura').href = await obterURLAssinada(supabase, 'fichas', socio.assinatura_url)
+        // }
+
+        // Guardar sócio e estado adimplente para uso em ações
+        socioAtual = socio
+        adimplenteAtual = socio.adimplente ?? true
+
+        // Carregar pagamentos e renderizar badge
+        await carregarPagamentosCard(socio.id, adimplenteAtual)
+
+        carregando.style.display = 'none'
+        conteudo.style.display = 'block'
+      } catch (error) {
+        carregando.style.display = 'none'
+        exibirAlerta(alerta, formatarMensagemErro(error), 'error')
+      }
+    }
+
+    // Event listeners
+    btnAprovar.addEventListener('click', () => {
+      acaoAtual = 'aprovar'
+      modalTitulo.textContent = 'Aprovar Sócio'
+      modalMensagem.textContent = 'Tem certeza que deseja aprovar este sócio?'
+      mostrarModal()
+    })
+
+    btnRecusar.addEventListener('click', () => {
+      formRecusao.classList.toggle('show')
+    })
+
+    btnCancelarRecusa.addEventListener('click', () => {
+      formRecusao.classList.remove('show')
+      motivoRecusa.value = ''
+    })
+
+    btnConfirmarRecusa.addEventListener('click', () => {
+      if (!motivoRecusa.value.trim()) {
+        exibirAlerta(alerta, 'Informe o motivo da recusa', 'error')
+        return
+      }
+      acaoAtual = 'recusar'
+      modalTitulo.textContent = 'Recusar Sócio'
+      modalMensagem.textContent = `Motivo: ${motivoRecusa.value}`
+      mostrarModal()
+    })
+
+    btnExcluir.addEventListener('click', () => {
+      acaoAtual = 'excluir'
+      modalTitulo.textContent = 'Excluir Sócio'
+      modalMensagem.textContent = 'Tem certeza? Esta ação não pode ser desfeita.'
+      mostrarModal()
+    })
+
+    btnModalConfirmar.addEventListener('click', async () => {
+      fecharModal()
+      try {
+        if (acaoAtual === 'aprovar') {
+          await aprovarSocio(supabase, socioId, session.user.email, socioAtual)
+          exibirAlerta(alerta, 'Sócio aprovado com sucesso!', 'success')
+          setTimeout(() => window.location.href = './dashboard.html', 1500)
+        } else if (acaoAtual === 'recusar') {
+          const motivo = motivoRecusa.value
+          await recusarSocio(supabase, socioId, motivo, session.user.email, socioAtual)
+          exibirAlerta(alerta, 'Sócio recusado com sucesso!', 'success')
+          setTimeout(() => window.location.href = './dashboard.html', 1500)
+        } else if (acaoAtual === 'excluir') {
+          await excluirSocio(supabase, socioId)
+          exibirAlerta(alerta, 'Sócio excluído com sucesso!', 'success')
+          setTimeout(() => window.location.href = './dashboard.html', 1500)
+        }
+      } catch (error) {
+        exibirAlerta(alerta, formatarMensagemErro(error), 'error')
+      }
+    })
+
+    function mostrarModal() {
+      modalBackdrop.classList.add('show')
+      modal.classList.add('show')
+    }
+
+    function fecharModal() {
+      modalBackdrop.classList.remove('show')
+      modal.classList.remove('show')
+    }
+
+    btnModalCancelar.addEventListener('click', fecharModal)
+    modalBackdrop.addEventListener('click', fecharModal)
+
+    // Toggle adimplência ao clicar no badge
+    badgeAdimplencia.style.cursor = 'pointer'
+    badgeAdimplencia.title = 'Clique para alterar adimplência'
+    badgeAdimplencia.addEventListener('click', async () => {
+      try {
+        await toggleAdimplente(supabase, socioId, adimplenteAtual)
+        adimplenteAtual = !adimplenteAtual
+        atualizarBadgeAdimplencia(adimplenteAtual)
+      } catch (error) {
+        exibirAlerta(alerta, formatarMensagemErro(error), 'error')
+      }
+    })
+
+    function atualizarBadgeAdimplencia(adimplente) {
+      badgeAdimplencia.className = `status-badge ${adimplente ? 'status-aprovado' : 'status-recusado'}`
+      badgeAdimplencia.textContent = adimplente ? '✓ ADIMPLENTE' : '✗ INADIMPLENTE'
+    }
+
+    // Carregar pagamentos na card
+    async function carregarPagamentosCard(socioId, adimplente) {
+      try {
+        const pagamentos = await carregarPagamentos(supabase, socioId)
+
+        // Badge adimplência (campo direto de socios.adimplente)
+        atualizarBadgeAdimplencia(adimplente)
+
+        // Tabela pagamentos últimos 12 meses
+        if (pagamentos.length === 0) {
+          tabelaPagamentos.innerHTML = '<p style="color: var(--muted); text-align: center; padding: 20px; font-size: 14px;">Nenhum pagamento registrado</p>'
+        } else {
+          let html = '<table style="width: 100%; font-size: 13px; border-collapse: collapse;"><thead><tr style="background: var(--bg); border-bottom: 1px solid var(--border);"><th style="padding: 10px; text-align: left; font-weight: 600;">Mês Referência</th><th style="padding: 10px; text-align: left; font-weight: 600;">Data</th><th style="padding: 10px; text-align: right; font-weight: 600;">Valor</th></tr></thead><tbody>'
+          
+          pagamentos.forEach(p => {
+            const dataPag = p.data_pagamento ? new Date(p.data_pagamento).toLocaleDateString('pt-BR') : 'Pendente'
+            const valor = p.valor ? `R$ ${parseFloat(p.valor).toFixed(2)}` : '-'
+            html += `<tr style="border-bottom: 1px solid var(--border);"><td style="padding: 10px;">${p.mes_referencia}</td><td style="padding: 10px;">${dataPag}</td><td style="padding: 10px; text-align: right;">${valor}</td></tr>`
+          })
+          
+          html += '</tbody></table>'
+          tabelaPagamentos.innerHTML = html
+        }
+      } catch (error) {
+        tabelaPagamentos.innerHTML = `<p style="color: var(--danger); text-align: center; padding: 20px; font-size: 13px;">Erro ao carregar pagamentos</p>`
+      }
+    }
+
+    // Registrar pagamento
+    btnRegistrarPagamento.addEventListener('click', async () => {
+      const dataPag = inputDataPagamento.value
+      const mes = dataPag ? dataPag.substring(0, 7) : ''
+      const valor = parseFloat(inputValorPagamento.value)
+      const forma = inputFormaPagamento.value || null
+
+      if (!dataPag) {
+        exibirAlerta(alerta, 'Informe a data do pagamento', 'error')
+        return
+      }
+
+      if (!valor || valor <= 0) {
+        exibirAlerta(alerta, 'Informe um valor válido', 'error')
+        return
+      }
+
+      try {
+        btnRegistrarPagamento.disabled = true
+        await registrarPagamento(supabase, socioId, mes, valor, forma, session.user.email, dataPag)
+        exibirAlerta(alerta, 'Pagamento registrado com sucesso!', 'success')
+        inputDataPagamento.value = new Date().toISOString().split('T')[0]
+        inputValorPagamento.value = ''
+        inputFormaPagamento.value = ''
+
+        // Recarregar tabela de histórico (badge usa adimplenteAtual, não muda ao registrar pagamento)
+        await carregarPagamentosCard(socioId, adimplenteAtual)
+      } catch (error) {
+        exibirAlerta(alerta, formatarMensagemErro(error), 'error')
+      } finally {
+        btnRegistrarPagamento.disabled = false
+      }
+    })
+
+    // Carregar ao abrir página
+    await carregarDados()
+  </script>
+</body>
+</html>

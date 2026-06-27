@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verificação de Carteira — SINDESEP-PB</title>
+  <meta name="description" content="Verifique a autenticidade da carteira sindical digital SINDESEP-PB.">
+  <meta name="theme-color" content="#1a1a1a">
+  <link rel="icon" type="image/jpeg" href="/logo/faviSINDESEP.png">
+  <link rel="stylesheet" href="/css/carteira.css">
+</head>
+<body>
+
+  <div class="verificar-shell">
+
+    <!-- ── Carregando ── -->
+    <div id="v-loading" class="v-loading">
+      <div class="spinner-lg" aria-hidden="true"></div>
+      <p>Verificando carteira…</p>
+    </div>
+
+    <!-- ── Inválida / Cancelada / Expirada ── -->
+    <div id="v-invalid" class="v-card v-card-danger" role="alert" aria-live="assertive">
+      <div class="v-header">
+        <span class="v-error-icon" aria-hidden="true">❌</span>
+        <h2 id="v-invalid-title">Carteira Inválida</h2>
+      </div>
+      <p id="v-invalid-msg" style="color:var(--muted);line-height:1.6;margin:0 0 20px">
+        Esta carteira não foi encontrada ou não é válida.
+      </p>
+      <div class="v-footer">
+        <img src="/logo/logoHD.png" alt="SINDESEP-PB" class="v-logo">
+        <span class="v-phone">(83) 3221-5350</span>
+      </div>
+    </div>
+
+    <!-- ── Inadimplente (aviso amarelo) ── -->
+    <div id="v-warning" class="v-card v-card-warning" role="alert" aria-live="assertive">
+      <div class="v-header">
+        <span class="v-warning-icon" aria-hidden="true">⚠️</span>
+        <h2>Sócio com pendência</h2>
+      </div>
+      <div class="v-body">
+        <div class="v-foto-wrap">
+          <div class="v-foto-placeholder" aria-hidden="true">👤</div>
+        </div>
+        <div class="v-info">
+          <h3 id="vw-nome"></h3>
+          <p><strong id="vw-cargo"></strong></p>
+          <p id="vw-empresa"></p>
+        </div>
+      </div>
+      <div class="v-status-row">
+        <span class="v-dot-yellow" aria-hidden="true">●</span>
+        <span style="color:#fbbf24">CONTRIBUIÇÃO EM ATRASO</span>
+      </div>
+      <p class="v-description" style="border-color:rgba(245,158,11,0.2)">
+        Este associado possui contribuição sindical em atraso e pode estar com benefícios suspensos. Entre em contato com o sindicato para mais informações.
+      </p>
+      <div class="v-footer">
+        <img src="/logo/logoHD.png" alt="SINDESEP-PB" class="v-logo">
+        <span class="v-phone">(83) 3221-5350</span>
+      </div>
+    </div>
+
+    <!-- ── Válida ── -->
+    <div id="v-valid" class="v-card v-card-success" role="main" aria-live="polite">
+      <div class="v-header">
+        <span class="v-check" aria-hidden="true">✅</span>
+        <h2>SÓCIO ATIVO — SINDESEP-PB</h2>
+      </div>
+
+      <div class="v-body">
+        <div class="v-foto-wrap">
+          <img id="v-foto" src="" alt="Foto do associado" class="v-foto" style="display:none">
+          <div class="v-foto-placeholder" id="v-foto-placeholder" aria-hidden="true">👤</div>
+        </div>
+        <div class="v-info">
+          <h3 id="v-nome"></h3>
+          <p><strong id="v-cargo"></strong></p>
+          <p id="v-empresa"></p>
+        </div>
+      </div>
+
+      <div class="v-status-row">
+        <span class="v-dot-green" aria-hidden="true">●</span>
+        <span style="color:#4ade80">ADIMPLENTE</span>
+      </div>
+
+      <div class="v-validity">
+        <span>Válido até: </span><span id="v-validade"></span>
+      </div>
+
+      <p class="v-description">
+        Este associado tem direito a todos os benefícios negociados pelo SINDESEP-PB junto às empresas conveniadas.
+      </p>
+
+      <div class="v-footer">
+        <img src="/logo/logoHD.png" alt="SINDESEP-PB" class="v-logo">
+        <span class="v-phone">(83) 3221-5350</span>
+      </div>
+    </div>
+
+  </div><!-- /verificar-shell -->
+
+  <script type="module">
+    import { supabase } from '/js/supabase.js'
+
+    function formatarData(dateStr) {
+      const [y, m] = dateStr.split('-')
+      return `${m}/${y}`
+    }
+
+    function show(id) {
+      document.getElementById(id).style.display = 'block'
+      document.getElementById('v-loading').style.display = 'none'
+    }
+
+    function mostrarInvalida(titulo, msg) {
+      document.getElementById('v-invalid-title').textContent = titulo
+      document.getElementById('v-invalid-msg').textContent   = msg
+      show('v-invalid')
+    }
+
+    async function verificar() {
+      const params = new URLSearchParams(window.location.search)
+      const id     = params.get('id')
+
+      if (!id) {
+        mostrarInvalida('Carteira Inválida', 'Nenhum identificador de carteira foi fornecido.')
+        return
+      }
+
+      const { data: resultado, error } = await supabase
+        .rpc('verificar_carteira', { p_carteira_id: id })
+
+      const data = resultado && resultado[0] ? {
+        id:       resultado[0].carteira_id,
+        validade: resultado[0].validade,
+        ativa:    resultado[0].ativa,
+        foto_url: resultado[0].foto_url,
+        socios: {
+          nome_completo: resultado[0].nome_completo,
+          cargo:         resultado[0].cargo,
+          empresa:       resultado[0].empresa,
+          adimplente:    resultado[0].adimplente,
+          status:        resultado[0].status
+        }
+      } : null
+
+      if (error || !data) {
+        mostrarInvalida('Carteira Inválida', 'Esta carteira não foi encontrada no sistema.')
+        return
+      }
+
+      const socio = data.socios
+
+      if (!data.ativa) {
+        mostrarInvalida('Carteira Cancelada', 'Esta carteira foi cancelada e não é mais válida.')
+        return
+      }
+
+      const hoje = new Date().toISOString().split('T')[0]
+      if (data.validade < hoje) {
+        mostrarInvalida('Carteira Expirada', `Esta carteira expirou em ${formatarData(data.validade)}. O associado deve gerar uma nova carteira.`)
+        return
+      }
+
+      if (!socio || socio.status !== 'aprovado') {
+        mostrarInvalida('Filiação Não Ativa', 'A filiação deste associado não está ativa no momento.')
+        return
+      }
+
+      if (!socio.adimplente) {
+        // Aviso amarelo — inadimplente mas carteira ainda válida
+        document.getElementById('vw-nome').textContent    = socio.nome_completo
+        document.getElementById('vw-cargo').textContent   = socio.cargo || 'Associado'
+        document.getElementById('vw-empresa').textContent = socio.empresa || ''
+        show('v-warning')
+        return
+      }
+
+      // Tudo válido — card verde
+      document.getElementById('v-nome').textContent    = socio.nome_completo
+      document.getElementById('v-cargo').textContent   = socio.cargo || 'Associado'
+      document.getElementById('v-empresa').textContent = socio.empresa || ''
+      document.getElementById('v-validade').textContent = formatarData(data.validade)
+
+      if (data.foto_url) {
+        const fotoEl = document.getElementById('v-foto')
+        fotoEl.src = data.foto_url
+        fotoEl.style.display = 'block'
+        document.getElementById('v-foto-placeholder').style.display = 'none'
+      }
+
+      show('v-valid')
+    }
+
+    verificar()
+  </script>
+
+</body>
+</html>

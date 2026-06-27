@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minha Carteira Sindical — SINDESEP-PB</title>
+  <meta name="description" content="Gere ou acesse sua carteira digital de associado SINDESEP-PB.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#1A5C22">
+  <link rel="icon" type="image/jpeg" href="/logo/faviSINDESEP.png">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Carteira SINDESEP">
+  <link rel="stylesheet" href="/css/carteira.css?v=4">
+</head>
+<body>
+
+  <div class="page-shell">
+
+    <!-- ── Cabeçalho ── -->
+    <header class="topbar">
+      <a class="brand" href="./index.html" aria-label="Página inicial da filiação sindical digital">
+        <span class="brand-mark" aria-hidden="true">
+          <!-- [INSERIR LOGO SINDESEP AQUI — PNG transparente, mín. 200x60px] -->
+          <img src="./logo/logoHD.png" alt="SINDESEP-PB">
+        </span>
+        <span class="brand-copy">
+          <span class="brand-name">SINDESEP</span>
+          <small class="brand-subtitle">Sindicato dos Empregados em Estab. de Serv. de Saúde da Paraíba</small>
+        </span>
+      </a>
+
+      <nav class="topbar-links" aria-label="Links úteis">
+        <a class="topbar-link" href="./index.html">← Filiação</a>
+        <a class="topbar-link" href="./beneficios.html">Nossos benefícios</a>
+        <a class="topbar-link" href="./privacidade.html">Política de Privacidade</a>
+      </nav>
+    </header>
+
+    <main>
+
+      <!-- ── Indicador de etapas ── -->
+      <div class="step-indicator" aria-label="Progresso">
+        <div class="step active" id="step-dot-1">
+          <span class="step-num">1</span>
+          <span class="step-label">Identificação</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" id="step-dot-2">
+          <span class="step-num">2</span>
+          <span class="step-label">Foto</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" id="step-dot-3">
+          <span class="step-num">3</span>
+          <span class="step-label">Carteira</span>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════
+           ETAPA 1 — Busca por CPF
+           ════════════════════════════════════════ -->
+      <div class="step-panel" id="panel-1">
+
+        <div class="panel-header">
+          <h1>🪪 Minha Carteira Sindical</h1>
+          <p>Digite seu CPF para gerar ou acessar sua carteira digital de associado.</p>
+        </div>
+
+        <div class="form-card">
+          <label for="input-cpf">Seu CPF</label>
+          <input
+            type="text"
+            id="input-cpf"
+            placeholder="000.000.000-00"
+            maxlength="14"
+            inputmode="numeric"
+            autocomplete="off"
+            aria-label="CPF do associado"
+          >
+          <label for="input-nascimento">Data de nascimento</label>
+          <input
+            type="date"
+            id="input-nascimento"
+            autocomplete="off"
+            aria-label="Data de nascimento do associado"
+          >
+          <button class="btn-primary" id="btn-buscar" type="button">
+            <span id="btn-buscar-text">Buscar</span>
+            <span id="btn-buscar-spin" class="spinner" style="display:none" aria-hidden="true"></span>
+          </button>
+          <div class="msg-box" id="msg-cpf" style="display:none" role="alert"></div>
+        </div>
+
+        <!-- Card inadimplente -->
+        <div class="status-card status-danger" id="card-inadimplente" style="display:none" role="alert">
+          <div class="status-icon" aria-hidden="true">⚠️</div>
+          <div class="status-body">
+            <h3>Contribuição em atraso</h3>
+            <p>Sua contribuição sindical está em atraso. A carteira não pode ser gerada até a regularização. Entre em contato com o sindicato.</p>
+            <a href="https://wa.me/5583993526385" class="contact-link" target="_blank" rel="noopener">
+              📞 (83) 3221-5350
+            </a>
+          </div>
+        </div>
+
+      </div><!-- /panel-1 -->
+
+      <!-- ════════════════════════════════════════
+           ETAPA 2 — Foto
+           ════════════════════════════════════════ -->
+      <div class="step-panel" id="panel-2" style="display:none">
+
+        <div class="panel-header">
+          <h2>Foto para a carteira</h2>
+          <p>Use uma foto com boa iluminação e rosto centralizado. Ela aparecerá na sua carteira.</p>
+        </div>
+
+        <!-- Abas câmera / arquivo -->
+        <div class="photo-tabs" role="tablist" aria-label="Método de envio de foto">
+          <button class="tab-btn active" id="tab-camera" role="tab" aria-selected="true">📷 Câmera</button>
+          <button class="tab-btn"        id="tab-arquivo" role="tab" aria-selected="false">📁 Galeria</button>
+        </div>
+
+        <!-- Câmera ao vivo -->
+        <div id="panel-camera" role="tabpanel">
+          <div class="camera-wrap">
+            <video id="camera-preview" autoplay playsinline muted></video>
+            <div class="camera-overlay" aria-hidden="true"></div>
+          </div>
+          <button class="btn-capture" id="btn-tirar-foto" type="button">
+            📸 Tirar foto
+          </button>
+        </div>
+
+        <!-- Upload de arquivo -->
+        <div id="panel-arquivo" role="tabpanel" style="display:none">
+          <label class="file-drop" id="file-drop-area" for="input-foto" aria-label="Área para envio de foto">
+            <span aria-hidden="true">📁</span>
+            <span>Clique para escolher uma foto ou arraste aqui</span>
+            <span style="font-size:0.82rem;color:var(--muted)">JPG, PNG — recomendado frente ao rosto</span>
+          </label>
+          <input type="file" id="input-foto" accept="image/*" capture="user" style="display:none" aria-hidden="true">
+        </div>
+
+        <!-- Preview circular -->
+        <div class="photo-preview-wrap" id="preview-wrap" style="display:none">
+          <canvas id="preview-canvas" width="240" height="240" aria-label="Prévia circular da foto"></canvas>
+          <div class="preview-actions">
+            <button class="btn-secondary" id="btn-tirar-novamente" type="button">↩ Tirar novamente</button>
+            <button class="btn-primary"   id="btn-usar-foto"       type="button">
+              <span id="btn-usar-text">Usar esta foto</span>
+              <span id="btn-usar-spin" class="spinner" style="display:none" aria-hidden="true"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Canvas auxiliar para captura (oculto) -->
+        <canvas id="foto-canvas" style="display:none" aria-hidden="true"></canvas>
+
+      </div><!-- /panel-2 -->
+
+      <!-- ════════════════════════════════════════
+           ETAPA 3 — Carteira gerada
+           ════════════════════════════════════════ -->
+      <div class="step-panel" id="panel-3" style="display:none">
+
+        <div class="panel-header">
+          <h2>Sua Carteira Sindical</h2>
+          <p>Pronto! Baixe ou compartilhe sua carteira digital.</p>
+        </div>
+
+        <!-- Card glassmorphism — visualização ao vivo com anti-fraude -->
+        <div id="card-glass" aria-label="Carteira sindical digital">
+          <div class="glass-top">
+            <img class="glass-logo" src="/logo/logoHD.png" alt="SINDESEP-PB">
+            <span class="glass-badge">● ASSOCIADO ATIVO</span>
+          </div>
+          <div class="glass-foto-wrap">
+            <img id="glass-foto" class="glass-foto" src="" alt="Foto do associado" style="display:none">
+            <div class="glass-foto-placeholder" id="glass-foto-placeholder" aria-hidden="true">👤</div>
+          </div>
+          <div class="glass-info">
+            <p class="glass-nome"     id="glass-nome"></p>
+            <p class="glass-cargo"    id="glass-cargo"></p>
+            <p class="glass-empresa"  id="glass-empresa"></p>
+            <p class="glass-cpf"      id="glass-cpf"></p>
+            <p class="glass-controle" id="glass-controle"></p>
+          </div>
+          <div class="glass-footer">
+            <div class="glass-left">
+              <span class="glass-validade-label">Válida até</span>
+              <strong class="glass-validade" id="glass-validade"></strong>
+              <span class="glass-clock" id="glass-clock" aria-live="off"></span>
+            </div>
+            <div class="glass-qr-wrap">
+              <div id="glass-qr-container"></div>
+              <span class="glass-qr-label">Verificar</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Canvas oculto — mantido somente para exportação PNG -->
+        <canvas id="card-canvas" width="856" height="540" style="display:none" aria-hidden="true"></canvas>
+
+        <div class="card-actions">
+          <button class="btn-primary"   id="btn-download" type="button">⬇ Baixar PNG</button>
+          <button class="btn-secondary" id="btn-share"    type="button" style="display:none">↗ Compartilhar</button>
+        </div>
+
+        <p class="validity-note" id="validity-note" aria-live="polite"></p>
+
+      </div><!-- /panel-3 -->
+
+    </main>
+  </div><!-- /page-shell -->
+
+  <!-- Container oculto para geração do QR Code -->
+  <div id="qr-container" style="position:absolute;left:-9999px;top:-9999px;visibility:hidden" aria-hidden="true"></div>
+
+  <!-- QRCode.js — carregado antes do módulo -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script type="module" src="/js/carteira.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .catch(e => console.warn('[SW] Registro falhou:', e))
+    }
+  </script>
+
+</body>
+</html>

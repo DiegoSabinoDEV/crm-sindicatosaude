@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Importação de sócios — SINDESEP-PB — Sindicato dos Empregados em Estab. de Serv. de Saúde da Paraíba">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#1a3a5c">
+  <link rel="icon" type="image/jpeg" href="/logo/faviSINDESEP.png">
+  <link rel="stylesheet" href="/css/admin/admin.css">
+  <link rel="stylesheet" href="/css/admin/importar.css">
+  <title>Importar Sócios - CRM Filiação Sindical</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div>
+          <h1 style="color: var(--primary);">Importar Sócios</h1>
+          <p style="color: var(--muted); margin-top: 4px;">Importação em lote via CSV/Excel</p>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <a href="dashboard.html" class="btn btn-secondary">← Voltar</a>
+          <a href="financeiro.html" class="btn btn-secondary">Financeiro</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container-md">
+    <div id="alerta" class="alert"></div>
+
+    <!-- Upload Area -->
+    <div class="card">
+      <h2>1. Selecionar Arquivo</h2>
+      <div class="upload-area" id="uploadArea">
+        <div class="upload-icon">📁</div>
+        <div class="upload-text">Arraste um arquivo CSV ou XLSX aqui</div>
+        <div class="upload-hint">ou clique para selecionar</div>
+        <input type="file" id="fileInput" accept=".csv,.xlsx">
+        <button type="button" class="btn btn-accent btn-download-modelo" id="btnBaixarModelo">
+          📥 Baixar Modelo CSV
+        </button>
+      </div>
+      <div class="file-info" id="fileInfo"></div>
+    </div>
+
+    <!-- Preview Section -->
+    <div class="card preview-section" id="previewSection">
+      <h2>2. Visualizar Dados</h2>
+      <div class="preview-info">
+        Primeiras 5 linhas do arquivo. Verifique se os dados estão corretos antes de importar.
+      </div>
+      <div class="preview-table" id="previewTable"></div>
+      <div class="actions-section">
+        <button type="button" class="btn btn-secondary" id="btnCancelarPreview">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="btnConfirmarImportacao">✓ Confirmar Importação</button>
+      </div>
+    </div>
+
+    <!-- Progress Section -->
+    <div class="card progress-section" id="progressSection">
+      <h2>3. Importando...</h2>
+      <div class="progress-text">
+        <span id="progressLabel">Importando...</span>
+        <span id="progressPercent">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <!-- Relatório Section -->
+    <div class="card relatorio-section" id="relatorioSection">
+      <h2>4. Relatório Final</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin: 16px 0;">
+        <div class="relatorio-card sucesso">
+          <div class="relatorio-numero" id="totalImportados">0</div>
+          <div class="relatorio-label">Importados</div>
+        </div>
+        <div class="relatorio-card aviso">
+          <div class="relatorio-numero" id="totalDuplicados">0</div>
+          <div class="relatorio-label">Duplicados</div>
+        </div>
+        <div class="relatorio-card erro">
+          <div class="relatorio-numero" id="totalErros">0</div>
+          <div class="relatorio-label">Erros</div>
+        </div>
+        <div class="relatorio-card">
+          <div class="relatorio-numero" id="totalProcessados">0</div>
+          <div class="relatorio-label">Total Processado</div>
+        </div>
+      </div>
+
+      <div id="errosList" class="erros-lista" style="display: none;"></div>
+
+      <div class="actions-section">
+        <button type="button" class="btn btn-primary" id="btnNovaImportacao">↻ Nova Importação</button>
+        <a href="dashboard.html" class="btn btn-secondary">← Voltar ao Dashboard</a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from '/js/supabase.js'
+    import { protegerRota, exibirAlerta, formatarMensagemErro } from '/js/admin/auth.js'
+    import {
+      processarCSV,
+      validarLinhaCSV,
+      gerarModeloCSV
+    } from '/js/admin/importar.js'
+
+    // Guard
+    await protegerRota(supabase)
+
+    // Elements
+    const uploadArea = document.getElementById('uploadArea')
+    const fileInput = document.getElementById('fileInput')
+    const fileInfo = document.getElementById('fileInfo')
+    const btnBaixarModelo = document.getElementById('btnBaixarModelo')
+    const previewSection = document.getElementById('previewSection')
+    const previewTable = document.getElementById('previewTable')
+    const progressSection = document.getElementById('progressSection')
+    const progressFill = document.getElementById('progressFill')
+    const progressLabel = document.getElementById('progressLabel')
+    const progressPercent = document.getElementById('progressPercent')
+    const relatorioSection = document.getElementById('relatorioSection')
+    const btnCancelarPreview = document.getElementById('btnCancelarPreview')
+    const btnConfirmarImportacao = document.getElementById('btnConfirmarImportacao')
+    const btnNovaImportacao = document.getElementById('btnNovaImportacao')
+    const alerta = document.getElementById('alerta')
+
+    let arquivoProcessado = null
+
+    // Drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault()
+      uploadArea.classList.add('dragover')
+    })
+
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover')
+    })
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault()
+      uploadArea.classList.remove('dragover')
+      const files = e.dataTransfer.files
+      if (files.length > 0) {
+        handleFileSelect(files[0])
+      }
+    })
+
+    uploadArea.addEventListener('click', () => {
+      fileInput.click()
+    })
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleFileSelect(e.target.files[0])
+      }
+    })
+
+    // Baixar modelo
+    btnBaixarModelo.addEventListener('click', () => {
+      gerarModeloCSV()
+    })
+
+    // Handle file
+    async function handleFileSelect(file) {
+      try {
+        // Validar tipo
+        if (!file.name.match(/\.(csv|xlsx)$/i)) {
+          exibirAlerta(alerta, 'Apenas arquivos CSV ou XLSX são permitidos', 'error')
+          return
+        }
+
+        fileInfo.textContent = `📄 ${file.name} (${(file.size / 1024).toFixed(2)} KB)`
+        fileInfo.classList.add('show')
+
+        // Processar
+        arquivoProcessado = await processarCSV(file)
+
+        if (arquivoProcessado.dados.length === 0) {
+          exibirAlerta(alerta, 'O arquivo está vazio ou não tem dados válidos', 'error')
+          return
+        }
+
+        // Preview
+        exibirPreview(arquivoProcessado.dados.slice(0, 5))
+        previewSection.classList.add('show')
+      } catch (error) {
+        exibirAlerta(alerta, formatarMensagemErro(error), 'error')
+      }
+    }
+
+    function exibirPreview(dados) {
+      if (dados.length === 0) return
+
+      const headers = Object.keys(dados[0])
+      let html = '<table><thead><tr>'
+      
+      headers.forEach(h => {
+        html += `<th>${h}</th>`
+      })
+      
+      html += '</tr></thead><tbody>'
+      
+      dados.forEach(linha => {
+        html += '<tr>'
+        headers.forEach(h => {
+          const valor = linha[h] || '-'
+          html += `<td>${String(valor).substring(0, 50)}</td>`
+        })
+        html += '</tr>'
+      })
+      
+      html += '</tbody></table>'
+      previewTable.innerHTML = html
+    }
+
+    // Cancelar
+    btnCancelarPreview.addEventListener('click', () => {
+      previewSection.classList.remove('show')
+      fileInput.value = ''
+      fileInfo.classList.remove('show')
+      arquivoProcessado = null
+    })
+
+    // Confirmar
+    btnConfirmarImportacao.addEventListener('click', async () => {
+      previewSection.classList.remove('show')
+      progressSection.classList.add('show')
+      progressFill.style.width = '0%'
+      progressPercent.textContent = '0%'
+
+      try {
+        const resultado = await importarEmLote(arquivoProcessado.dados)
+        exibirRelatorio(resultado)
+      } catch (error) {
+        exibirAlerta(alerta, formatarMensagemErro(error), 'error')
+        progressSection.classList.remove('show')
+      }
+    })
+
+    // Importar em lote
+    async function importarEmLote(dados) {
+      const BATCH_SIZE = 100
+      let importados = 0
+      let duplicados = 0
+      let erros = 0
+      const errosList = []
+
+      for (let i = 0; i < dados.length; i += BATCH_SIZE) {
+        const lote = dados.slice(i, i + BATCH_SIZE)
+        const processado = await Promise.all(
+          lote.map(async (linha, idx) => {
+            try {
+              const validacao = validarLinhaCSV(linha)
+              if (!validacao.valido) {
+                erros++
+                errosList.push(`Linha ${i + idx + 2}: ${validacao.erro}`)
+                return { sucesso: false }
+              }
+
+              const { error } = await supabase
+                .from('socios')
+                .upsert([linha], { onConflict: 'cpf', ignoreDuplicates: true })
+
+              if (error) {
+                if (error.message.includes('duplicate')) {
+                  duplicados++
+                } else {
+                  erros++
+                  errosList.push(`Linha ${i + idx + 2}: ${error.message}`)
+                }
+                return { sucesso: false }
+              }
+
+              importados++
+              return { sucesso: true }
+            } catch (error) {
+              erros++
+              errosList.push(`Linha ${i + idx + 2}: ${error.message}`)
+              return { sucesso: false }
+            }
+          })
+        )
+
+        // Atualizar progress
+        const processados = i + lote.length
+        const percent = Math.round((processados / dados.length) * 100)
+        progressFill.style.width = `${percent}%`
+        progressPercent.textContent = `${percent}%`
+        progressLabel.textContent = `Importando ${processados} de ${dados.length}...`
+      }
+
+      return { importados, duplicados, erros, total: dados.length, errosList }
+    }
+
+    // Exibir relatório
+    function exibirRelatorio(resultado) {
+      progressSection.classList.remove('show')
+      relatorioSection.classList.add('show')
+
+      document.getElementById('totalImportados').textContent = resultado.importados
+      document.getElementById('totalDuplicados').textContent = resultado.duplicados
+      document.getElementById('totalErros').textContent = resultado.erros
+      document.getElementById('totalProcessados').textContent = resultado.total
+
+      if (resultado.errosList.length > 0) {
+        const errosList = document.getElementById('errosList')
+        errosList.innerHTML = resultado.errosList
+          .slice(0, 20)
+          .map(e => `<div class="erro-item">${e}</div>`)
+          .join('')
+        if (resultado.errosList.length > 20) {
+          errosList.innerHTML += `<div class="erro-item">... e mais ${resultado.errosList.length - 20} erros</div>`
+        }
+        errosList.style.display = 'block'
+      }
+
+      if (resultado.importados > 0) {
+        exibirAlerta(alerta, `✓ ${resultado.importados} sócios importados com sucesso!`, 'success')
+      }
+    }
+
+    // Nova importação
+    btnNovaImportacao.addEventListener('click', () => {
+      location.reload()
+    })
+  </script>
+</body>
+</html>

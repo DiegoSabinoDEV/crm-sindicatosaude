@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#CC0000">
+  <link rel="icon" type="image/jpeg" href="/logo/faviSINDESEP.png">
+  <link rel="stylesheet" href="/css/admin/admin.css">
+  <link rel="stylesheet" href="/css/admin/financeiro.css">
+  <title>Financeiro - CRM SINDESEP</title>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="header-left">
+        <div class="header-brand">
+          <h1>SINDESEP-PB</h1>
+          <span>CRM Sindical</span>
+        </div>
+        <nav class="nav-tabs">
+          <a href="dashboard.html" class="nav-tab">Dashboard</a>
+          <a href="novo.html" class="nav-tab">+ Novo Sócio</a>
+          <a href="importar.html" class="nav-tab">Importar</a>
+          <a href="financeiro.html" class="nav-tab active">Financeiro</a>
+        </nav>
+      </div>
+      <div class="header-actions">
+        <button id="btn-logout" class="btn btn-danger">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div id="alerta" class="alert"></div>
+
+    <!-- Cards de Resumo -->
+    <div class="stats-grid">
+      <div class="stat-card card-total">
+        <div class="stat-icon">👥</div>
+        <div class="stat-value" id="stat-total">—</div>
+        <div class="stat-label">Sócios Ativos</div>
+        <div class="stat-sub">Status aprovado</div>
+      </div>
+      <div class="stat-card card-adi">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value" id="stat-adimplentes">—</div>
+        <div class="stat-label">Adimplentes</div>
+        <div class="stat-sub">Em dia com a mensalidade</div>
+      </div>
+      <div class="stat-card card-inadi">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-value" id="stat-inadimplentes">—</div>
+        <div class="stat-label">Inadimplentes</div>
+        <div class="stat-sub">Necessitam atenção</div>
+      </div>
+    </div>
+
+    <!-- Registro de Arrecadação -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>
+          <span class="section-icon">💰</span>
+          Registrar Arrecadação Mensal
+        </h2>
+      </div>
+      <div class="section-body">
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="mes-referencia">Mês de Referência</label>
+            <input type="month" id="mes-referencia">
+          </div>
+          <div class="form-field">
+            <label for="valor-arrecadado">Valor Arrecadado (R$)</label>
+            <input type="number" id="valor-arrecadado" placeholder="0,00" step="0.01" min="0">
+          </div>
+          <div class="form-field">
+            <label for="valor-esperado">Valor Esperado (R$)</label>
+            <input type="number" id="valor-esperado" placeholder="Calculando..." step="0.01" min="0">
+            <span class="form-hint success" id="hint-esperado"></span>
+          </div>
+          <div class="form-field full-width">
+            <label for="observacoes">Observações</label>
+            <textarea id="observacoes" placeholder="Notas sobre a arrecadação deste mês (greve, inadimplências, descontos, etc.)..."></textarea>
+          </div>
+        </div>
+        <button id="btn-registrar" class="btn btn-primary">💾 Registrar Arrecadação</button>
+      </div>
+    </div>
+
+    <!-- Histórico 12 meses -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>
+          <span class="section-icon">📊</span>
+          Histórico dos Últimos 12 Meses
+        </h2>
+      </div>
+      <div id="historico-wrapper">
+        <div class="loading-section">
+          <span class="spinner"></span> Carregando histórico...
+        </div>
+      </div>
+    </div>
+
+    <!-- Inadimplentes -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>
+          <span class="section-icon">🔔</span>
+          Sócios Inadimplentes
+        </h2>
+        <span class="section-badge" id="badge-inadi">carregando...</span>
+      </div>
+      <div class="section-body" id="inadimplentes-wrapper">
+        <div class="loading-section">
+          <span class="spinner"></span> Carregando inadimplentes...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from '/js/supabase.js'
+    import { protegerRota, fazerLogout, exibirAlerta, formatarMensagemErro } from '/js/admin/auth.js'
+    import {
+      carregarResumo,
+      carregarHistorico,
+      registrarArrecadacao,
+      carregarInadimplentes
+    } from '/js/admin/financeiro.js'
+
+    await protegerRota(supabase)
+
+    const alerta         = document.getElementById('alerta')
+    const btnLogout      = document.getElementById('btn-logout')
+    const btnRegistrar   = document.getElementById('btn-registrar')
+    const mesRef         = document.getElementById('mes-referencia')
+    const valorArr       = document.getElementById('valor-arrecadado')
+    const valorEsp       = document.getElementById('valor-esperado')
+    const obs            = document.getElementById('observacoes')
+    const hintEsperado   = document.getElementById('hint-esperado')
+
+    // Pré-preencher mês atual
+    const hoje = new Date()
+    mesRef.value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`
+
+    btnLogout.addEventListener('click', async () => {
+      try { await fazerLogout(supabase) }
+      catch (e) { exibirAlerta(alerta, formatarMensagemErro(e), 'error') }
+    })
+
+    // Inicializar página
+    async function inicializar() {
+      try {
+        const { total, adimplentes, inadimplentes, esperado, totalDireto } = await carregarResumo(supabase)
+        document.getElementById('stat-total').textContent = total
+        document.getElementById('stat-adimplentes').textContent = adimplentes
+        document.getElementById('stat-inadimplentes').textContent = inadimplentes
+
+        if (esperado !== null) {
+          valorEsp.value = esperado.toFixed(2)
+          hintEsperado.textContent = `Calculado: ${totalDireto} sócio(s) direto × mensalidade média`
+        }
+      } catch (e) {
+        exibirAlerta(alerta, formatarMensagemErro(e), 'error')
+      }
+
+      await Promise.all([renderHistorico(), renderInadimplentes()])
+    }
+
+    // Renderizar tabela histórico
+    async function renderHistorico() {
+      const wrapper = document.getElementById('historico-wrapper')
+      try {
+        const historico = await carregarHistorico(supabase)
+
+        if (historico.length === 0) {
+          wrapper.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">📭</div>
+              <strong>Nenhum registro ainda</strong>
+              <p>Use o formulário acima para registrar a primeira arrecadação.</p>
+            </div>`
+          return
+        }
+
+        let rows = ''
+        for (const r of historico) {
+          const esp = parseFloat(r.valor_esperado || 0)
+          const arr = parseFloat(r.valor_arrecadado || 0)
+          const dif = arr - esp
+          const perc = esp > 0 ? (arr / esp * 100) : 0
+          const percClass = perc >= 100 ? 'perc-verde' : perc >= 80 ? 'perc-amarelo' : 'perc-vermelho'
+          const difClass  = dif >= 0 ? 'dif-positiva' : 'dif-negativa'
+          const percIcon  = perc >= 100 ? '↑' : perc >= 80 ? '~' : '↓'
+          const [ano, mes] = r.mes_referencia.split('-')
+          const nomeMes = new Date(Number(ano), Number(mes) - 1, 1)
+            .toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+          const nomeMesFmt = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1)
+
+          rows += `<tr>
+            <td class="mes-label">${nomeMesFmt}</td>
+            <td class="valor-cell">R$ ${esp.toFixed(2)}</td>
+            <td class="valor-cell">R$ ${arr.toFixed(2)}</td>
+            <td class="valor-cell ${difClass}">${dif >= 0 ? '+' : ''}R$ ${Math.abs(dif).toFixed(2)}</td>
+            <td><span class="perc-badge ${percClass}">${percIcon} ${perc.toFixed(1)}%</span></td>
+            <td class="obs-cell">${r.observacoes || '—'}</td>
+          </tr>`
+        }
+
+        wrapper.innerHTML = `
+          <div class="table-scroll">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Mês</th>
+                  <th>Esperado</th>
+                  <th>Arrecadado</th>
+                  <th>Diferença</th>
+                  <th>%</th>
+                  <th>Observações</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>`
+      } catch (e) {
+        wrapper.innerHTML = `<div class="empty-state" style="color:var(--danger);">Erro ao carregar histórico.</div>`
+      }
+    }
+
+    // Renderizar lista inadimplentes
+    async function renderInadimplentes() {
+      const wrapper = document.getElementById('inadimplentes-wrapper')
+      const badge   = document.getElementById('badge-inadi')
+      try {
+        const lista = await carregarInadimplentes(supabase)
+        badge.textContent = `${lista.length} sócio(s)`
+
+        if (lista.length === 0) {
+          wrapper.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">🎉</div>
+              <strong>Nenhum inadimplente!</strong>
+              <p>Todos os sócios aprovados estão em dia.</p>
+            </div>`
+          return
+        }
+
+        const pgtoLabel = f => f === 'folha' ? 'Folha' : 'Direto'
+        const fmtNumero = w => (w || '').replace(/\D/g, '')
+        const waMensagem = s => encodeURIComponent(
+          `Olá, ${s.nome_completo}! Tudo bem? 😊\n\n` +
+          `Passamos para lembrar que identificamos uma pendência na sua mensalidade do *SINDESEP-PB*.\n\n` +
+          `Para regularizar sua situação ou tirar dúvidas, entre em contato conosco.\n\n` +
+          `Atenciosamente,\n*SINDESEP-PB* — [CONFIRMAR COM CLIENTE]`
+        )
+
+        let itens = ''
+        for (const s of lista) {
+          const num = fmtNumero(s.whatsapp)
+          const btnWa = num
+            ? `<a href="https://wa.me/55${num}?text=${waMensagem(s)}" target="_blank" rel="noopener" class="btn-notificar">📱 Notificar</a>`
+            : `<span style="color:var(--muted);font-size:12px;">Sem WhatsApp</span>`
+
+          itens += `<div class="inadi-item">
+            <div>
+              <div class="inadi-nome">${s.nome_completo}</div>
+              <div class="inadi-info" style="margin-top:2px;">${s.empresa || 'Empresa não informada'}</div>
+            </div>
+            <div class="inadi-info">${s.cargo || '—'}</div>
+            <div class="inadi-info">${s.whatsapp || '—'}</div>
+            <span class="pgto-badge">${pgtoLabel(s.forma_pagamento)}</span>
+            ${btnWa}
+          </div>`
+        }
+
+        wrapper.innerHTML = `<div class="inadimplentes-list">${itens}</div>`
+      } catch (e) {
+        badge.textContent = 'erro'
+        wrapper.innerHTML = `<div style="color:var(--danger);padding:24px;text-align:center;font-size:14px;">Erro ao carregar inadimplentes.</div>`
+      }
+    }
+
+    // Registrar arrecadação
+    btnRegistrar.addEventListener('click', async () => {
+      const mes       = mesRef.value
+      const arrecadado = parseFloat(valorArr.value)
+      const esperado   = parseFloat(valorEsp.value)
+
+      if (!mes) {
+        exibirAlerta(alerta, 'Selecione o mês de referência.', 'error')
+        return
+      }
+      if (!valorArr.value || arrecadado < 0) {
+        exibirAlerta(alerta, 'Informe o valor arrecadado.', 'error')
+        return
+      }
+
+      try {
+        btnRegistrar.disabled = true
+        btnRegistrar.textContent = 'Registrando...'
+        await registrarArrecadacao(
+          supabase,
+          mes,
+          arrecadado,
+          isNaN(esperado) ? null : esperado,
+          obs.value.trim() || null
+        )
+        exibirAlerta(alerta, 'Arrecadação registrada com sucesso!', 'success')
+        valorArr.value = ''
+        obs.value = ''
+        await renderHistorico()
+      } catch (e) {
+        exibirAlerta(alerta, formatarMensagemErro(e), 'error')
+      } finally {
+        btnRegistrar.disabled = false
+        btnRegistrar.textContent = '💾 Registrar Arrecadação'
+      }
+    })
+
+    inicializar()
+  </script>
+</body>
+</html>

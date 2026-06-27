@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Dashboard CRM — SINDESEP-PB — Sindicato dos Empregados em Estab. de Serv. de Saúde da Paraíba">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#1a3a5c">
+  <link rel="icon" type="image/jpeg" href="/logo/faviSINDESEP.png">
+  <link rel="stylesheet" href="/css/admin/admin.css">
+  <link rel="stylesheet" href="/css/admin/dashboard.css">
+  <title>Dashboard - CRM Filiação Sindical</title>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="header-title">
+        <h1>Dashboard</h1>
+        <span>ADMIN</span>
+      </div>
+      <div class="header-actions">
+        <a href="novo.html" class="btn btn-primary">+ Novo Sócio</a>
+        <a href="financeiro.html" class="btn btn-secondary">Financeiro</a>
+        <button id="btn-logout" class="btn btn-danger">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div id="alerta" class="alert"></div>
+
+    <div class="stats" id="estatisticas">
+      <div class="stat-card">
+        <div class="stat-value">-</div>
+        <div class="stat-label">Total</div>
+      </div>
+      <div class="stat-card pendente">
+        <div class="stat-value">-</div>
+        <div class="stat-label">Pendentes</div>
+      </div>
+      <div class="stat-card aprovado">
+        <div class="stat-value">-</div>
+        <div class="stat-label">Aprovados</div>
+      </div>
+      <div class="stat-card recusado">
+        <div class="stat-value">-</div>
+        <div class="stat-label">Recusados</div>
+      </div>
+    </div>
+
+    <div class="filters">
+      <div class="filter-group">
+        <label for="filtro-status">Status</label>
+        <select id="filtro-status">
+          <option value="">Todos</option>
+          <option value="pendente">Pendente</option>
+          <option value="aprovado">Aprovado</option>
+          <option value="recusado">Recusado</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="busca">Buscar por Nome ou CPF</label>
+        <input type="text" id="busca" placeholder="Nome ou CPF...">
+      </div>
+
+      <div class="filter-actions">
+        <button id="btn-filtrar" class="btn-filter">Filtrar</button>
+        <button id="btn-limpar-filtros" class="btn-limpar">Limpar</button>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <div id="carregando" class="loading" style="display: none;">
+        <span class="spinner"></span>Carregando dados...
+      </div>
+
+      <div id="vazio" class="empty-state" style="display: none;">
+        <h3>Nenhum sócio encontrado</h3>
+        <p>Tente ajustar seus filtros ou adicionar novos sócios</p>
+      </div>
+
+      <table id="tabela-socios" style="display: none;">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>CPF</th>
+            <th>Local de Trabalho</th>
+            <th>Status</th>
+            <th>Adimplência</th>
+            <th id="th-data-filiacao" style="cursor:pointer;user-select:none" title="Clique para ordenar">Data de Filiação <span id="sort-ind">&#8645;</span></th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="lista-socios"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from '/js/supabase.js'
+    import { protegerRota, fazerLogout, exibirAlerta, formatarMensagemErro } from '/js/admin/auth.js'
+    import { carregarSocios, calcularEstatisticas, mascararCPF } from '/js/admin/dashboard.js'
+
+    // Guard de autenticação
+    await protegerRota(supabase)
+
+    const btnLogout = document.getElementById('btn-logout')
+    const btnFiltrar = document.getElementById('btn-filtrar')
+    const btnLimparFiltros = document.getElementById('btn-limpar-filtros')
+    const filtroStatus = document.getElementById('filtro-status')
+    const busca = document.getElementById('busca')
+    const carregando = document.getElementById('carregando')
+    const vazio = document.getElementById('vazio')
+    const tabela = document.getElementById('tabela-socios')
+    const tbody = document.getElementById('lista-socios')
+    const alerta = document.getElementById('alerta')
+    const estatisticas = document.getElementById('estatisticas')
+    const thFiliacao = document.getElementById('th-data-filiacao')
+    const sortInd = document.getElementById('sort-ind')
+
+    let sociosCarregados = []
+    let sortAsc = null // null = sem ordenação ativa
+
+    function formatarDataFiliacao(data) {
+      if (!data) return '-'
+      const soData = String(data).split('T')[0]
+      const partes = soData.split('-')
+      if (partes.length !== 3) return '-'
+      return `${partes[2]}/${partes[1]}/${partes[0]}`
+    }
+
+    function renderizarTabela(lista) {
+      if (lista.length === 0) {
+        vazio.style.display = 'block'
+        tabela.style.display = 'none'
+        return
+      }
+
+      tbody.innerHTML = lista.map(socio => `
+        <tr>
+          <td>${socio.nome_completo}</td>
+          <td class="cpf-masked">${mascararCPF(socio.cpf)}</td>
+          <td>${socio.empresa || '-'}</td>
+          <td>
+            <span class="status-badge status-${socio.status}">
+              ${socio.status === 'pendente' ? 'Pendente' :
+                socio.status === 'aprovado' ? 'Aprovado' : 'Recusado'}
+            </span>
+          </td>
+          <td>
+            <span class="status-badge ${socio.adimplente !== false ? 'status-aprovado' : 'status-recusado'}">
+              ${socio.adimplente !== false ? '✓ Adimplente' : '✗ Inadimplente'}
+            </span>
+          </td>
+          <td>${formatarDataFiliacao(socio.data_filiacao)}</td>
+          <td class="actions-cell">
+            <a href="detalhe.html?id=${socio.id}" class="btn-small btn-view">Ver Detalhes</a>
+          </td>
+        </tr>
+      `).join('')
+
+      tabela.style.display = 'table'
+      carregando.style.display = 'none'
+    }
+
+    // Logout
+    btnLogout.addEventListener('click', async () => {
+      try {
+        await fazerLogout(supabase)
+      } catch (error) {
+        exibirAlerta(alerta, formatarMensagemErro(error), 'error')
+      }
+    })
+
+    // Ordenação por Data de Filiação
+    thFiliacao.addEventListener('click', () => {
+      sortAsc = sortAsc === null ? true : !sortAsc
+      sortInd.textContent = sortAsc ? '▲' : '▼'
+      const sorted = [...sociosCarregados].sort((a, b) => {
+        const da = a.data_filiacao || ''
+        const db = b.data_filiacao || ''
+        return sortAsc ? da.localeCompare(db) : db.localeCompare(da)
+      })
+      renderizarTabela(sorted)
+    })
+
+    // Carregar dados iniciais
+    async function atualizarDados() {
+      try {
+        carregando.style.display = 'block'
+        vazio.style.display = 'none'
+        tabela.style.display = 'none'
+        sortAsc = null
+        sortInd.innerHTML = '&#8645;'
+
+        const filtros = {
+          status: filtroStatus.value || null,
+          busca: busca.value.trim() || null
+        }
+
+        const { socios, total, pendentes, aprovados, recusados } = await carregarSocios(supabase, filtros)
+
+        // Atualizar estatísticas
+        const stats = estatisticas.querySelectorAll('.stat-value')
+        stats[0].textContent = total
+        stats[1].textContent = pendentes
+        stats[2].textContent = aprovados
+        stats[3].textContent = recusados
+
+        sociosCarregados = socios
+        renderizarTabela(socios)
+
+        if (socios.length === 0) {
+          carregando.style.display = 'none'
+        }
+      } catch (error) {
+        carregando.style.display = 'none'
+        exibirAlerta(alerta, formatarMensagemErro(error), 'error')
+      }
+    }
+
+    // Event listeners
+    btnFiltrar.addEventListener('click', atualizarDados)
+    btnLimparFiltros.addEventListener('click', () => {
+      filtroStatus.value = ''
+      busca.value = ''
+      atualizarDados()
+    })
+
+    // Enter na busca
+    busca.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') atualizarDados()
+    })
+
+    // Carregar dados ao abrir página
+    atualizarDados()
+  </script>
+</body>
+</html>

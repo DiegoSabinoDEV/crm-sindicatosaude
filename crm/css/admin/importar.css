@@ -1,0 +1,171 @@
+/* Override: body do importar não é flex */
+body { display: block; background: var(--bg); min-height: auto; }
+
+.upload-area {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 40px;
+  text-align: center;
+  background: var(--bg);
+  cursor: pointer;
+  transition: all 0.2s;
+  margin: 20px 0;
+}
+
+.upload-area.dragover {
+  border-color: var(--primary);
+  background: rgba(26, 58, 92, 0.05);
+}
+
+.upload-area input[type="file"] { display: none; }
+
+.upload-icon { font-size: 48px; margin-bottom: 12px; }
+.upload-text { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.upload-hint { font-size: 13px; color: var(--muted); }
+
+.btn-download-modelo {
+  background: var(--accent);
+  color: white;
+  margin-top: 12px;
+  display: inline-block;
+}
+
+.btn-download-modelo:hover { background: #d68f0f; }
+
+.preview-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin: 20px 0;
+  display: none;
+}
+
+.preview-section.show { display: block; }
+
+.preview-info {
+  background: var(--bg);
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.preview-table { width: 100%; overflow-x: auto; margin: 16px 0; }
+.preview-table table { font-size: 12px; }
+.preview-table th,
+.preview-table td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border); }
+.preview-table thead { background: var(--bg); }
+
+.progress-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin: 20px 0;
+  display: none;
+}
+
+.progress-section.show { display: block; }
+
+.progress-bar {
+  width: 100%;
+  height: 24px;
+  background: var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 16px 0;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  width: 0%;
+  transition: width 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.progress-text {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.relatorio-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin: 20px 0;
+  display: none;
+}
+
+.relatorio-section.show { display: block; }
+
+.relatorio-card {
+  background: var(--bg);
+  padding: 16px;
+  border-radius: var(--radius);
+  margin: 12px 0;
+  border-left: 4px solid var(--border);
+}
+
+.relatorio-card.sucesso { border-left-color: var(--success); }
+.relatorio-card.aviso   { border-left-color: var(--warning); }
+.relatorio-card.erro    { border-left-color: var(--danger); }
+
+.relatorio-numero { font-size: 24px; font-weight: 700; color: var(--primary); }
+.relatorio-label { font-size: 12px; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
+
+.erros-lista {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin-top: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: 12px;
+  color: #991b1b;
+}
+
+.erro-item { padding: 4px 0; border-bottom: 1px solid rgba(239, 68, 68, 0.2); }
+.erro-item:last-child { border-bottom: none; }
+
+.actions-section {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+.file-info {
+  background: rgba(26, 58, 92, 0.1);
+  border: 1px solid rgba(26, 58, 92, 0.3);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #0c2340;
+  margin: 12px 0;
+  display: none;
+}
+
+.file-info.show { display: block; }
+
+@media (max-width: 768px) {
+  .upload-area { padding: 24px; }
+  .upload-icon { font-size: 36px; }
+  .preview-table table { font-size: 11px; }
+  .preview-table th,
+  .preview-table td { padding: 6px; }
+  .actions-section { flex-direction: column; }
+  .btn { width: 100%; }
+}

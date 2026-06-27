@@ -1,0 +1,19 @@
+# Configuração real do Supabase — NUNCA commitar
+hostinger/js/supabase.js
+crm/js/supabase.js
+supabase.js
+
+# Ambiente
+.env
+*.env.local
+*.env.production
+
+# Dados sensíveis — dumps com informações de sócios reais
+socios_rows.sql
+*.rows.sql
+
+# Sistema
+node_modules/
+.DS_Store
+.DS_Store?
+Thumbs.db

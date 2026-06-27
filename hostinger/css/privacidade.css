@@ -1,0 +1,403 @@
+@import url('/css/fonts.css');
+
+:root {
+  --primary: #8A9A5B;
+  --primary-rgb: 138, 154, 91;
+  --accent: #3f3f46;
+  --bg: #f6f3f3;
+  --surface: #ffffff;
+  --border: #e1d6d6;
+  --text: #2f2f35;
+  --muted: #67676f;
+  --shadow: 0 20px 50px rgba(50, 34, 34, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Source Sans 3', sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(138, 154, 91, 0.22), transparent 30%),
+    linear-gradient(180deg, #2f3038 0, #454650 180px, var(--bg) 420px);
+  min-height: 100vh;
+}
+
+a {
+  color: var(--primary);
+}
+
+.wrap {
+  width: min(900px, calc(100% - 28px));
+  margin: 0 auto;
+  padding: 112px 0 48px;
+}
+
+/* ── TOPBAR (idêntico a filiacao.css) ── */
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #2F2F2F;
+  padding: 12px 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.22);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  color: #f8fafc;
+  transition: padding 0.3s ease, background 0.3s ease;
+}
+
+.topbar.scrolled {
+  padding: 6px 24px;
+  background: #2F2F2F;
+  backdrop-filter: blur(8px);
+}
+
+.topbar.scrolled .brand-mark {
+  width: 44px;
+  height: 44px;
+}
+
+.topbar.scrolled .brand-mark img {
+  max-height: 44px;
+}
+
+.topbar.scrolled .brand-name {
+  font-size: 16px;
+}
+
+.topbar.scrolled .brand-subtitle {
+  display: none;
+}
+
+.topbar.scrolled .topbar-links {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+.brand-mark {
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+  font-family: 'Lexend', sans-serif;
+  font-weight: 600;
+}
+
+.brand-mark {
+  width: auto;
+  height: auto;
+  padding: 0;
+  border-radius: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  flex-shrink: 0;
+}
+
+.brand-mark img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-height: 74px;
+  object-fit: contain;
+}
+
+.brand-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.brand-copy > span:first-child {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #f8fafc;
+  line-height: 1.1;
+}
+
+.brand-copy small {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+  line-height: 1.3;
+  max-width: 240px;
+}
+
+.brand-name,
+.brand-subtitle {
+  display: none;
+}
+
+.topbar-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  overflow: hidden;
+  max-height: 200px;
+  opacity: 1;
+  transition: opacity 0.3s ease, max-height 0.3s ease, margin 0.3s ease;
+}
+
+.topbar-link {
+  color: #ffffff;
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: 1px solid #8A9A5B;
+  background: #8A9A5B;
+  font-weight: 600;
+  font-size: 0.9rem;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  transition: background-color 180ms ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.topbar-link:hover,
+.topbar-link:focus-visible {
+  background: #5F6E3D;
+  outline: none;
+}
+
+.btn-carteira {
+  background: transparent !important;
+  border: 2px solid #8A9A5B !important;
+  color: #8A9A5B !important;
+  transition: background 200ms ease, color 200ms ease !important;
+}
+
+.btn-carteira:hover,
+.btn-carteira:focus-visible {
+  background: #8A9A5B !important;
+  color: #fff !important;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.hero {
+  padding: 32px;
+  background: linear-gradient(180deg, rgba(138, 154, 91, 0.10), rgba(255, 255, 255, 0));
+  border-bottom: 1px solid var(--border);
+}
+
+.hero span {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(var(--primary-rgb), 0.10);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.hero h1 {
+  margin: 0 0 10px;
+  font-family: 'Lexend', sans-serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.04;
+  letter-spacing: -0.04em;
+  color: #383840;
+}
+
+.hero p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.08rem;
+  line-height: 1.65;
+  max-width: 62ch;
+}
+
+.content {
+  padding: 28px 32px 34px;
+  display: grid;
+  gap: 18px;
+}
+
+.section {
+  padding: 22px;
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.section h2 {
+  margin: 0 0 8px;
+  font-family: 'Lexend', sans-serif;
+  font-size: 1.18rem;
+  color: #3a3a43;
+}
+
+.section p,
+.section li {
+  margin: 0;
+  color: #4b4b55;
+  line-height: 1.7;
+  font-size: 1rem;
+}
+
+.section ul {
+  margin: 12px 0 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 8px;
+}
+
+.footer-note {
+  margin-top: 16px;
+  text-align: center;
+  color: rgba(248, 250, 252, 0.84);
+}
+
+@media (max-width: 720px) {
+  .hero,
+  .content {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .section {
+    padding: 18px;
+  }
+}
+
+/* ── Cabeçalho — responsivo (idêntico a filiacao.css) ── */
+@media (max-width: 720px) {
+  .wrap { padding-top: 154px; }
+
+  .topbar {
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 16px;
+    gap: 10px;
+  }
+
+  .brand {
+    justify-content: center;
+    margin-bottom: 4px;
+  }
+
+  .brand-mark {
+    width: 56px;
+    height: 56px;
+  }
+
+  .brand-mark img {
+    max-height: 56px;
+    width: auto;
+    background: transparent;
+  }
+
+  .topbar-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .topbar-link {
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    justify-content: center;
+  }
+}
+
+@media (min-width: 769px) {
+  .topbar { padding: 12px 32px; }
+
+  .topbar.scrolled {
+    padding: 6px 32px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  }
+
+  .brand-mark {
+    width: auto;
+    height: auto;
+  }
+
+  .brand-mark img {
+    width: auto;
+    height: auto;
+    max-height: 80px;
+    transition: max-height 0.3s ease;
+  }
+
+  .topbar.scrolled .brand-mark {
+    width: auto;
+    height: auto;
+  }
+
+  .topbar.scrolled .brand-mark img {
+    max-height: 44px;
+  }
+
+  .topbar.scrolled .topbar-links {
+    max-height: 200px !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+}
+
+/* Hover flutuante da logo e botões do cabeçalho */
+.brand-mark img,
+.topbar .brand img {
+  box-shadow: 0px 15px 25px -10px rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  animation: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.brand-mark img:hover,
+.topbar .brand img:hover {
+  transform: translateY(-8px);
+  box-shadow: 0px 20px 30px -10px rgba(0, 0, 0, 0.5);
+  animation: none;
+}
+
+.topbar-links a {
+  transition: transform 0.3s ease,
+              box-shadow 0.3s ease,
+              background-color 0.2s ease;
+}
+
+.topbar-links a:hover {
+  transform: translateY(-4px);
+  box-shadow: 0px 8px 16px -4px rgba(138, 154, 91, 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-mark img:hover,
+  .topbar .brand img:hover,
+  .topbar-links a:hover {
+    transform: none;
+  }
+}

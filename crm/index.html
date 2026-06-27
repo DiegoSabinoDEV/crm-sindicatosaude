@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CRM Administrativo — SINDESEP-PB">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#1a1a1a">
+  <link rel="icon" type="image/jpeg" href="/logo/faviSINDESEP.png">
+  <link rel="stylesheet" href="/css/admin/admin.css">
+  <title>Entrar - CRM Filiação Sindical</title>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="logo-area">
+        <img src="/logo/logoSINDESEP.png" alt="SINDESEP-PB" class="login-logo">
+        <h1>CRM Filiação</h1>
+        <p>Painel Administrativo — SINDESEP-PB</p>
+      </div>
+
+      <div id="alerta" class="alert"></div>
+
+      <form id="formulario-login">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="seu@email.com"
+            required
+            autocomplete="email"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="senha">Senha</label>
+          <input
+            type="password"
+            id="senha"
+            name="senha"
+            placeholder="••••••••"
+            required
+            autocomplete="current-password"
+          >
+        </div>
+
+        <button type="submit" class="btn-login" id="btn-entrar">
+          Entrar
+        </button>
+
+        <div class="loading" id="carregando">
+          <span class="spinner"></span>Verificando credenciais...
+        </div>
+      </form>
+
+      <div class="footer">
+        <p>Acesso restrito a administradores</p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from '/js/supabase.js'
+    import { fazerLogin, exibirAlerta } from '/js/admin/auth.js'
+
+    const formulario = document.getElementById('formulario-login')
+    const btnEntrar = document.getElementById('btn-entrar')
+    const carregando = document.getElementById('carregando')
+    const alerta = document.getElementById('alerta')
+
+    formulario.addEventListener('submit', async (e) => {
+      e.preventDefault()
+
+      const email = document.getElementById('email').value.trim()
+      const senha = document.getElementById('senha').value
+
+      if (!email || !senha) {
+        exibirAlerta(alerta, 'Email e senha são obrigatórios.', 'error')
+        return
+      }
+
+      btnEntrar.disabled = true
+      carregando.classList.add('show')
+      alerta.classList.remove('show')
+
+      try {
+        await fazerLogin(email, senha, supabase)
+      } catch (error) {
+        btnEntrar.disabled = false
+        carregando.classList.remove('show')
+        const mensagem = error.message || 'Erro ao fazer login. Tente novamente.'
+        exibirAlerta(alerta, mensagem, 'error')
+      }
+    })
+
+    // Verificar se já está autenticado
+    ;(async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        window.location.href = './dashboard.html'
+      }
+    })()
+  </script>
+</body>
+</html>
