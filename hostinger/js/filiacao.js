@@ -268,7 +268,8 @@ async function capturarIP() {
 
     const dados = await resposta.json()
     return dados.ip || dados.query || dados.address || ''
-  } catch {
+  } catch (e) {
+    console.warn('[filiacao] Falha ao capturar IP de consentimento LGPD:', e)
     return ''
   }
 }
