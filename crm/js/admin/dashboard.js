@@ -139,6 +139,14 @@ export const obterSoiosPorStatus = obterSociosPorStatus
  * @param {array} socios - Array de sócios
  * @param {string} nomeArquivo - Nome do arquivo a gerar
  */
+// Neutraliza fórmulas do Excel/Sheets (CSV Injection) prefixando com aspas simples.
+// Também escapa aspas duplas internas (RFC 4180: " → "").
+function sanitizarCelulaCSV(valor) {
+  const str = String(valor ?? '')
+  const escapado = str.replace(/"/g, '""')
+  return /^[=+\-@\t\r\n]/.test(escapado) ? `'${escapado}` : escapado
+}
+
 export function exportarParaCSV(socios, nomeArquivo = 'socios.csv') {
   if (!socios || socios.length === 0) {
     alert('Nenhum sócio para exportar')
@@ -165,7 +173,7 @@ export function exportarParaCSV(socios, nomeArquivo = 'socios.csv') {
   // Montar CSV
   const csv = [
     headers.join(','),
-    ...linhas.map(linha => linha.map(cell => `"${cell}"`).join(','))
+    ...linhas.map(linha => linha.map(cell => `"${sanitizarCelulaCSV(cell)}"`).join(','))
   ].join('\n')
 
   // Download
