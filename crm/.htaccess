@@ -1,0 +1,34 @@
+Options -Indexes
+ErrorDocument 403 /index.html
+ErrorDocument 404 /index.html
+
+# ==========================================================================
+# Painel administrativo — postura restritiva
+# (não há acesso público legítimo a este diretório a não ser o login)
+# ==========================================================================
+
+# Bloqueio de arquivos sensíveis (schema, dumps, docs, env, configs JSON)
+<FilesMatch "\.(sql|md|env|json)$">
+  Order Allow,Deny
+  Deny from all
+</FilesMatch>
+
+# ==========================================================================
+# Headers de segurança HTTP
+# ==========================================================================
+<IfModule mod_headers.c>
+  # Nunca embutir o painel em iframe (anti-clickjacking)
+  Header always set X-Frame-Options "DENY"
+
+  # Impede o navegador de adivinhar (sniff) o tipo do conteúdo
+  Header always set X-Content-Type-Options "nosniff"
+
+  # Não vaza a URL do painel para outros domínios
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # Reforça o noindex das metatags no nível HTTP (painel fora de buscadores)
+  Header always set X-Robots-Tag "noindex, nofollow"
+
+  # O painel não usa câmera, microfone, geolocalização nem pagamento
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+</IfModule>

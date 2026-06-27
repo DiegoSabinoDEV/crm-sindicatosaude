@@ -201,6 +201,39 @@ Logo em 3 ocorrências: `/logo/logoHD.png`.
 
 ---
 
+## Segurança
+
+> Status detalhado e comparação com o plano comercial: ver `docs/SindCore_Seguranca_Implementado_SINDESEP.md` (documento-espelho do `SindCore_Plano_Seguranca_Comercial.md`).
+
+### `.htaccess` — público (`hostinger/.htaccess`)
+
+- `Options -Indexes` + bloqueio de `.sql .md .env` e `.json` (com **exceção para `manifest.json`**, necessário ao PWA).
+- Headers HTTP: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(self), microphone=(), geolocation=(), payment=()` (câmera liberada só no próprio domínio — foto da carteira).
+- Envolto em `<IfModule mod_headers.c>` para não derrubar o site se o módulo estiver ausente.
+
+### `.htaccess` — CRM (`crm/.htaccess`)
+
+- Criado nesta rodada (não existia). Postura mais rígida: bloqueio de `.sql .md .env .json`, mesmos headers + `X-Robots-Tag: noindex, nofollow` e `Permissions-Policy` bloqueando **câmera também** (nenhuma página do admin usa).
+
+### Rate limit do formulário de filiação (`js/filiacao.js`)
+
+- Client-side, complementar ao hCaptcha: 3 filiações bem-sucedidas / 10 min por dispositivo → bloqueio 10 min.
+- Persistido em `localStorage` (`sindesep_filiacao_rl`); conta só envios que criam registro (após `insertSocio`); ignorado em localhost; fail-open se `localStorage` indisponível.
+- Funções: `lerEstadoRL`, `checarRateLimit`, `registrarEnvio`.
+- **Limitação:** contornável (limpar `localStorage` / trocar navegador). Proteção forte exige rate limit server-side no banco.
+
+### Base já validada
+
+- RLS ativo em todas as tabelas; **sem SELECT público em `socios`** (comentário no SQL avisa para não recriar).
+- Acesso público só via RPC `SECURITY DEFINER`. Buckets `fichas`/`contracheques` privados.
+- CRM com `protegerRota` (Supabase Auth) em toda página. `supabase.js` fora do Git.
+
+### Pendências de segurança (resumo)
+
+- Rate limit **server-side** (carteira + filiação), bucket `fotos-carteira` sem listagem, hCaptcha de produção, Cloudflare/WAF, mensagem de erro genérica em `mapearMensagemErro`, log no `catch` de IP, webhook n8n por configuração, log de auditoria do CRM. Detalhe e prioridades no documento-espelho.
+
+---
+
 ## Problemas encontrados e resolvidos
 
 | Problema | Causa | Solução |
@@ -240,6 +273,7 @@ Logo em 3 ocorrências: `/logo/logoHD.png`.
 | 2026-06-27 | Fase 3: carteira digital (canvas + upload foto + verificar.html) |
 | 2026-06-27 | Widget agente de dúvidas (placeholder, aguarda n8n) |
 | 2026-06-27 | Carteira premium: card glassmorphism + anti-fraude + PWA |
+| 2026-06-27 | Segurança: headers HTTP no `.htaccess` público + `crm/.htaccess` (novo) + rate limit client-side na filiação. Criado documento-espelho `SindCore_Seguranca_Implementado_SINDESEP.md` |
 
 ---
 

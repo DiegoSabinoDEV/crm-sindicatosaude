@@ -2,7 +2,40 @@ Options -Indexes
 ErrorDocument 403 /index.html
 ErrorDocument 404 /index.html
 
-<FilesMatch "\.(sql|json|md|env)$">
+# ==========================================================================
+# Bloqueio de arquivos sensíveis
+# (schema SQL, dumps, documentação interna, variáveis de ambiente)
+# ==========================================================================
+<FilesMatch "\.(sql|md|env)$">
   Order Allow,Deny
   Deny from all
 </FilesMatch>
+
+# Bloqueia .json por padrão, mas libera o manifest.json (necessário ao PWA)
+<FilesMatch "\.json$">
+  Order Allow,Deny
+  Deny from all
+</FilesMatch>
+<Files "manifest.json">
+  Order Allow,Deny
+  Allow from all
+</Files>
+
+# ==========================================================================
+# Headers de segurança HTTP
+# ==========================================================================
+<IfModule mod_headers.c>
+  # Impede que o site seja embutido em iframe de terceiros (anti-clickjacking)
+  Header always set X-Frame-Options "DENY"
+
+  # Impede o navegador de adivinhar (sniff) o tipo do conteúdo
+  Header always set X-Content-Type-Options "nosniff"
+
+  # Não vaza a URL completa para outros domínios
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # Desativa APIs não usadas. Câmera liberada só para o próprio domínio
+  # (necessária na captura de foto da carteira); microfone, geolocalização
+  # e pagamento permanecem bloqueados.
+  Header always set Permissions-Policy "camera=(self), microphone=(), geolocation=(), payment=()"
+</IfModule>

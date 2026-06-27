@@ -24,6 +24,15 @@ let cepLookupTimeout = null
 let ultimoCepConsultado = ''
 let enviando = false
 
+// Rate limit do formulário (anti-spam complementar ao hCaptcha):
+// até RL_MAX_ENVIOS filiações bem-sucedidas por dispositivo dentro da janela;
+// ao atingir o limite, bloqueia novos envios por RL_BLOQUEIO_MS.
+// Persistido em localStorage (sobrevive a reload). Em localhost é ignorado.
+const RL_KEY = 'sindesep_filiacao_rl'
+const RL_MAX_ENVIOS = 3
+const RL_JANELA_MS = 10 * 60_000
+const RL_BLOQUEIO_MS = 10 * 60_000
+
 if (clearSignatureButton) {
   clearSignatureButton.addEventListener('click', () => {
     limparCanvas()
@@ -61,6 +70,11 @@ form?.addEventListener('submit', async event => {
   setEnviando(true)
 
   try {
+    const bloqueio = checarRateLimit()
+    if (bloqueio.bloqueado) {
+      throw new Error(`Você atingiu o limite de ${RL_MAX_ENVIOS} envios. Aguarde ${bloqueio.minutos} min e tente novamente.`)
+    }
+
     const dados = coletarDadosFormulario()
     const uuid = gerarUUID()
 
@@ -106,6 +120,8 @@ form?.addEventListener('submit', async event => {
       data_filiacao: new Date().toISOString().split('T')[0],
       forma_pagamento: 'folha'
     })
+
+    registrarEnvio()
 
     try {
       await fetch('https://n8n.liftcode.com.br/webhook/pesquisa-sindicato', {
@@ -486,6 +502,54 @@ function setEnviando(ativo) {
 
   submitButton.disabled = ativo
   submitButton.textContent = ativo ? 'Enviando filiação...' : 'Enviar filiação'
+}
+
+// --- Rate limit anti-spam (localStorage) -----------------------------------
+
+function lerEstadoRL() {
+  try {
+    const bruto = localStorage.getItem(RL_KEY)
+    if (!bruto) return { timestamps: [], bloqueadoAte: 0 }
+    const dados = JSON.parse(bruto)
+    return {
+      timestamps: Array.isArray(dados.timestamps) ? dados.timestamps : [],
+      bloqueadoAte: Number(dados.bloqueadoAte) || 0
+    }
+  } catch {
+    return { timestamps: [], bloqueadoAte: 0 }
+  }
+}
+
+function checarRateLimit() {
+  // Em desenvolvimento não bloqueia, igual ao bypass do hCaptcha.
+  if (window.location.hostname === 'localhost') return { bloqueado: false, minutos: 0 }
+  try {
+    const agora = Date.now()
+    const estado = lerEstadoRL()
+    if (estado.bloqueadoAte > agora) {
+      return { bloqueado: true, minutos: Math.ceil((estado.bloqueadoAte - agora) / 60_000) }
+    }
+    return { bloqueado: false, minutos: 0 }
+  } catch {
+    return { bloqueado: false, minutos: 0 } // fail-open: localStorage indisponível
+  }
+}
+
+function registrarEnvio() {
+  if (window.location.hostname === 'localhost') return
+  try {
+    const agora = Date.now()
+    const estado = lerEstadoRL()
+    const recentes = estado.timestamps.filter(t => agora - t < RL_JANELA_MS)
+    recentes.push(agora)
+    const novo = { timestamps: recentes, bloqueadoAte: estado.bloqueadoAte }
+    if (recentes.length >= RL_MAX_ENVIOS) {
+      novo.bloqueadoAte = agora + RL_BLOQUEIO_MS
+    }
+    localStorage.setItem(RL_KEY, JSON.stringify(novo))
+  } catch {
+    // localStorage indisponível (modo privado): rate limit simplesmente não persiste.
+  }
 }
 
 function valorCampo(id) {
